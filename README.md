@@ -1,2 +1,2 @@
 
-This program is invventory mgmt system
+This program is inventory mgmt system
