@@ -47,17 +47,17 @@ class Student:
 
 def login():
 
-    #while True:
+    while True:
 
-        #student_id_str = input("Enter your Student ID: ")
+        student_id_str = input("Enter your Student ID: ")
 
-        #if student_id_str.isdigit() and len(student_id_str) == 5:
+        if student_id_str.isdigit() and len(student_id_str) == 5:
 
-           # student_id = int(student_id_str)
+            student_id = int(student_id_str)
 
-           # break
+            break
 
-      #  else:
+        else:
           #  print("Invalid! Please enter a 5-digit Student ID.")
 
     if student_id not in students:
