@@ -1,7 +1,7 @@
 #isbn number on textbook barcode, encryption similar to indexed order
 #eg. instead of food[0], it could be like food[1234567]
 #Storage Structures
-
+import json
 students = {}      # key  = student id, value = inventory item
 reports = []       # Stores all incident reports
 
