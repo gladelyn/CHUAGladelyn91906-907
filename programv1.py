@@ -2,8 +2,11 @@
 #eg. instead of food[0], it could be like food[1234567]
 #Storage Structures
 import json
-students = {}      # key  = student id, value = inventory item
-reports = []       # Stores all incident reports
+
+#json files
+student_file = "students.json" #stores ID + inventory items
+reports_file = "reports.json" #stores all incident reports
+
 
 #Student Class
 
