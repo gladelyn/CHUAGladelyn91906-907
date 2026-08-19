@@ -33,6 +33,7 @@ class Student:
         self.inventory.append(item)
 
         print("Item successfully stored.\n")
+        
 
     def view_inventory(self):
 
@@ -48,7 +49,8 @@ class Student:
             print(f"Due Date: {item['Due Date']}")
             print("---------------------------")
 
-
+#converting student data from dictionary to json file
+def studentjson
 
 def login():
 
