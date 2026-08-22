@@ -117,6 +117,33 @@ class Student:
             print(f"Due Date: {item['Due Date']}")
             print("---------------------------") 
 
+    def delete_item(self):
+        #check whether the inventory is already empty first
+        if len(self.inventory)==0:
+            print("No items have been stored.\n")
+            return
+        print("\n----- Inventory -----")
+        #enumerate each item so the user can select which one they want to delete
+        for number, item, in enumerate(self.inventory, start = 1):
+            print(
+                f"{number}.{item["Name"]} -ID: {item["ID Number"]}"
+            )
+        #validating the user's choice, because they might write the name of item instead of choosing number
+        while True:
+            choice = input("Enter the number of the item you want to delete: ")
+            if choice.isdigit():
+                choice = int(choice)
+                if 1<= choice <= len(self.inventory):
+                    break
+            print("Invalid! Please select an item from the list based on it's number.")
+
+        #removing the chosen item from the inventory list
+        removed_item = self.inventory.pop(choice - 1)
+
+        print(
+            f"{removed_item["Name"]} has been removed from your inventory.\n"
+        )
+
 #signing up a new user
 def signup(students):
 
@@ -241,9 +268,10 @@ while True:
     print("\n-------------- Main Menu --------------")
     print("1. Add Item")
     print("2. View Inventory")
-    print("3. Report Incident")
-    print("4. Switch User")
-    print("5. Exit")
+    print("3. Remove Item")
+    print("4. Report Incident")
+    print("5. Switch User")
+    print("6. Exit")
 
     #asking the user which function they want to use
     choice = input("Choose an option: ")
@@ -253,15 +281,20 @@ while True:
     #viewing current student's inventory
     elif choice == "2":
         current_student.view_inventory()
-    #submit a report
+    #deleting item
     elif choice == "3":
+        current_student.delete_item()
+        #then save the updated inventory to the JSON file
+        save_students(students)
+    #submit a report
+    elif choice == "4":
         reports = report_incident(reports)
         save_reports(reports)
     #logging in as a different student
-    elif choice == "4":
+    elif choice == "5":
         current_student = login()
     #end the program
-    elif choice == "5":
+    elif choice == "6":
         save_students(students)
         save_reports(reports)
         print("Goodbye!")
