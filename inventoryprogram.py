@@ -1,16 +1,7 @@
-#isbn number on textbook barcode, encryption similar to indexed order
-#eg. instead of food[0], it could be like food[1234567]
-#Storage Structures
-import json
-
-#json files
-student_file = "students.json" #stores ID + inventory items
-reports_file = "reports.json" #stores all incident reports
-
-#loading student data
-
+#variables
+reports = []
+students = {}
 #Student Class
-
 class Student:
 
     def __init__(self, student_id, firstname):
@@ -49,8 +40,6 @@ class Student:
             print(f"Due Date: {item['Due Date']}")
             print("---------------------------")
 
-#converting student data from dictionary to json file
-def studentjson
 
 def login():
 
@@ -67,8 +56,8 @@ def login():
         else:
           #  print("Invalid! Please enter a 5-digit Student ID.")
 
-    if student_id not in students:
-        students[student_id] = Student(student_id)
+         if student_id not in students:
+            students[student_id] = Student(student_id)
 
     return students[student_id]
 
@@ -127,12 +116,3 @@ while True:
     else:
         print("Invalid option.")
 
-
-
-''' Main improvements for next version
-- more visually appealing so use tkinter or easygui as my second version
-- creating a trends report page that analyses all the reports stored in the system
-- maybe appending the data into a text/json file so that it doesn't clear when i close the window
-- move to more complex functionalities by using java script
-- rather than manually inputting item id, open a pop-up scanner/camera to scan the barcode of things like textbooks
-'''
