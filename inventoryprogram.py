@@ -1,6 +1,56 @@
+#external libraries
+import json #for appending details to external file
+
 #Inventory Program Version 1
 students = {} #key = student ID, value = inventory item
 reports = [] #stores all incident reports
+
+#loading student information from students.json so that details are kept even when program is closed
+def load_students():
+    try:
+        with open("students.json", "r") as file:
+            data = json.load(file)
+
+        #dictionary to store the Loaded Student objects
+        loaded_students = {}
+
+        #converting the saved dictionaries back into Student objects
+        for student_id, student_data in data.items():
+
+            student = Student(
+                int(student_id),
+                student_data["Name"],
+                student_data["Email"]
+            )
+
+            #restore the student's inventory
+            student.inventory = student_data["Inventory"]
+
+            loaded_students[int(student_id)] = student
+
+        #return the loaded students into the main program
+        return loaded_students
+    except FileNotFoundError:
+        #if the file does not exist yet, return empty dictionary
+        return{}
+
+#saving student information to external JSON file
+def save_students(students):
+    data = {}
+
+    #converting each Student object into dictionary
+    for student_id, student in students.items():
+        data[str(student_id)] = {
+            "Name":student.name,
+            "Email": student.email,
+            "Inventory": student.inventory
+        }
+
+    #saving the information as JSON
+    with open("students.json","w") as file:
+        json.dump(data, file, indent = 4)
+
+
 
 #Student Class, represents the student and their inventory items
 class Student:
@@ -62,7 +112,7 @@ def login():
         #signing up new student details
         name = input("Enter your name: ") 
         email = input("Enter your email: ")
-        
+
         students[student_id] = Student(student_id) 
 
     #return the Student object for the current logged-in student
@@ -89,6 +139,8 @@ def report_incident():
 #main program
 print("\n------------- Inventory Management -------------")
 
+#loading the students
+students = load_students()
 #logs in the first user when the program starts
 current_student = login()
 
@@ -117,6 +169,7 @@ while True:
         current_student = login()
     #end the program
     elif choice == "5":
+        save_students(students)
         print("Goodbye!")
         break
     #handles menu choices that are not between 1-5
