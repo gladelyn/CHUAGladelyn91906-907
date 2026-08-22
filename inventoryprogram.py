@@ -1,7 +1,9 @@
+#Inventory Program Version 2
 #external libraries
 import json #for appending details to external file
 import hashlib #for encryption
-#Inventory Program Version 1
+
+#global variables
 students = {} #key = student ID, value = inventory item
 reports = [] #stores all incident reports
 
