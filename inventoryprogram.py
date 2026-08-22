@@ -1,9 +1,14 @@
 #external libraries
 import json #for appending details to external file
-
+import hashlib #for encryption
 #Inventory Program Version 1
 students = {} #key = student ID, value = inventory item
 reports = [] #stores all incident reports
+
+
+#encyrpted password
+def hash_pswd(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
 #loading student information from students.json so that details are kept even when program is closed
 def load_students():
@@ -20,7 +25,8 @@ def load_students():
             student = Student(
                 int(student_id),
                 student_data["Name"],
-                student_data["Email"]
+                student_data["Email"],
+                student_data["Password"]
             )
 
             #restore the student's inventory
@@ -43,6 +49,7 @@ def save_students(students):
         data[str(student_id)] = {
             "Name":student.name,
             "Email": student.email,
+            "Password": student.password,
             "Inventory": student.inventory
         }
 
@@ -69,11 +76,12 @@ def save_reports(reports):
 
 #Student Class, represents the student and their inventory items
 class Student:
-    def __init__(self, student_id, name, email):
+    def __init__(self, student_id, name, email,password):
         self.student_id = student_id #stores student ID number
         self.inventory = [] #stores inventory items for this student
         self.name = name #stores user's name as well
         self.email = email #stores user's email
+        self.password = password #stores user's password
 
     def add_item(self): #allows this student to add items
         #getting the details of this item from user
@@ -132,9 +140,12 @@ def signup(students):
             print("Invalid! Please enter a 5-digit Student ID.")
 
     email = input("Enter your email: ")
+    password = input("Enter a password: ")
+    hashed_pswd = hash_pswd(password)
+
 
     #creating a new student object
-    student = Student(student_id, name, email)
+    student = Student(student_id, name, email, hashed_pswd)
     #adding the student object to the dictionary
     students[student_id] = student
     print("Account successfully created.\n")
