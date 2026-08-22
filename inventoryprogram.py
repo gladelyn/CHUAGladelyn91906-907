@@ -236,6 +236,47 @@ def report_incident():
 
     return reports
 
+def report_analysis(students, reports):
+    print("\n------------- Incident Report Summary -------------")
+
+    #counting the total number students that have been registered
+    total_students = len(students)
+    #counting the total number of inventory items
+    total_items = 0
+    for student in students.values():
+        total_items += len(student.inventory)
+    #then coun the total number of reports submitted
+    total_reports = len(reports)
+
+    print(f"\nTotal Registered Students: {total_students}")
+    print(f"Total Inventory Items: {total_items}")
+    print(f"Total Incident Reports: {total_reports}")
+
+    #counting the different types of reports made
+    thefts = 0
+    missingitems = 0
+    for report in reports:
+        if report["Type of Incident"]== "theft":
+            theft_count +=1
+        elif report["Type of Incident"]== "missing":
+            missing_count+=1
+
+    print("\n----- Incident Report Trends -----")
+    print(f"Theft Reports: {thefts}")
+    print(f"Missing Item Reports: {missingitems}")
+
+    #find out which type of incident is most common
+    if thefts>missingitems:
+        print("Theft appears to be the most common incident reported.")
+    elif missingitems>thefts:
+        print("Missing item reports appear to be the most common incidents.")
+    elif thefts ==  missingitems and thefts>0:
+        print("Both incident types will need to be monitored.")
+    else:
+        print("There have been no incident reports made.")
+
+    print("\n---------------------------------------------------")
+
 #main program
 #loading the students and reports
 students = load_students()
@@ -272,8 +313,9 @@ while True:
     print("2. View Inventory")
     print("3. Remove Item")
     print("4. Report Incident")
-    print("5. Switch User")
-    print("6. Exit")
+    print("5. Incident Report Trends")
+    print("6. Switch User")
+    print("7. Exit")
 
     #asking the user which function they want to use
     choice = input("Choose an option: ")
@@ -292,11 +334,14 @@ while True:
     elif choice == "4":
         reports = report_incident(reports)
         save_reports(reports)
-    #logging in as a different student
+    #analysing the reports made
     elif choice == "5":
+        report_analysis(students, reports)
+    #logging in as a different student
+    elif choice == "6":
         current_student = login()
     #end the program
-    elif choice == "6":
+    elif choice == "7":
         save_students(students)
         save_reports(reports)
         print("Goodbye!")
