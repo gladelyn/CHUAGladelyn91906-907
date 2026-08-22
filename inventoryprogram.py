@@ -50,7 +50,22 @@ def save_students(students):
     with open("students.json","w") as file:
         json.dump(data, file, indent = 4)
 
+#loading incident reports to external JSON file
+def load_reports():
+    try:
+        with open("reports.json","r") as file:
+            reports = json.load(file)
+        #return the reports that were loaded
+        return reports
+    except FileNotFoundError:
+        #if the file does not exist, return empty list
+        return []
 
+#saving the reports to external file
+def save_reports(reports):
+    with open("reports.json","w") as file:
+        json.dump(reports, file, indent = 4)
+    
 
 #Student Class, represents the student and their inventory items
 class Student:
@@ -136,11 +151,14 @@ def report_incident():
     reports.append(report)
     print("Report submitted successfully.\n")
 
+    return reports
+
 #main program
 print("\n------------- Inventory Management -------------")
 
-#loading the students
+#loading the students and reports
 students = load_students()
+reports = load_reports()
 #logs in the first user when the program starts
 current_student = login()
 
@@ -163,13 +181,15 @@ while True:
         current_student.view_inventory()
     #submit a report
     elif choice == "3":
-        report_incident()
+        reports = report_incident(reports)
+        save_reports(reports)
     #logging in as a different student
     elif choice == "4":
         current_student = login()
     #end the program
     elif choice == "5":
         save_students(students)
+        save_reports(reports)
         print("Goodbye!")
         break
     #handles menu choices that are not between 1-5
