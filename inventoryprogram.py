@@ -109,8 +109,41 @@ class Student:
             print(f"Due Date: {item['Due Date']}")
             print("---------------------------") 
 
-# logging a student into this inventory system            
-def login():
+#signing up a new user
+def signup(students):
+
+    print("\n---------- Sign Up ----------")
+
+    name = input("Enter your name: ")
+    print(f"Hello {name}, welcome to the Inventory Management System.")
+
+    #validating the student id
+    while True:
+        student_id_str = input("Enter your Student ID: ")
+        if student_id_str.isdigit() and len(student_id_str) == 5:
+            student_id = int(student_id_str)
+
+            #check whether id exists
+            if student_id not in students:
+                break
+            else:
+                print("This Student ID is already registered.")
+        else:
+            print("Invalid! Please enter a 5-digit Student ID.")
+
+    email = input("Enter your email: ")
+
+    #creating a new student object
+    student = Student(student_id, name, email)
+    #adding the student object to the dictionary
+    students[student_id] = student
+    print("Account successfully created.\n")
+
+    return students, student
+
+# logging an already signed up student into this inventory system
+# this function will check whether student id exists, students dictionary is passed into the function            
+def login(students):
     while True:
         #asking user for their student id
         student_id_str = input("Enter your Student ID: ")
@@ -154,13 +187,33 @@ def report_incident():
     return reports
 
 #main program
-print("\n------------- Inventory Management -------------")
-
 #loading the students and reports
 students = load_students()
 reports = load_reports()
-#logs in the first user when the program starts
-current_student = login()
+print("\n------------- Inventory Management -------------")
+
+while True:
+    print("\n-------------- Sign Up or Log In --------------")
+    print("1. Sign Up (new users)")
+    print("2. Log In")
+    print("3. Exit Program")
+
+    choice = input("Choose an option: ")
+    if choice == "1":
+        #signup will return updated students dictionary and newly created student object
+        #students dictionary is updated to include new account
+        #current_student identifies the student who has just signed up
+        students, current_student = signup(students)
+        break
+    elif choice == "2":
+        current_student = login(students)
+        if current_student is not None:
+            break
+    elif choice == "3":
+        print("Goodbye!")
+        break
+    else:
+        print("Invalid Option. Please choose between 1-3.")
 
 #keep displaying menu until the user wants to exit
 while True:
