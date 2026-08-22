@@ -155,6 +155,9 @@ def signup(students):
 # logging an already signed up student into this inventory system
 # this function will check whether student id exists, students dictionary is passed into the function            
 def login(students):
+
+    print("\n-------------- Log In --------------")
+
     while True:
         #asking user for their student id
         student_id_str = input("Enter your Student ID: ")
@@ -166,16 +169,23 @@ def login(students):
         else:
             print("Invalid! Please enter a 5-digit Student ID.")
 
-    #if the student doesn't exist, a new Student object is created
+    #if the student doesn't exist, student is redirected to sign up
     if student_id not in students:
-        #signing up new student details
-        name = input("Enter your name: ") 
-        email = input("Enter your email: ")
+        print("Student ID not found. Please sign up first.\n")
+        return None
 
-        students[student_id] = Student(student_id) 
+    #ask user for their desired password
+    password = input("Enter a password: ")
+    hashed_pswd = hash_pswd(password)
+    #after password is hashed, compare with stored password to check whether it matches
+    if students[student_id].password == hashed_pswd:
+        print(f"\nWelcome Back, {students[student_id].name}")
 
-    #return the Student object for the current logged-in student
-    return students[student_id]
+        return students[student_id]
+
+    else:
+        print("Incorrect Password.\n")
+        return None
 
 #allows student to report a theft or missing item
 def report_incident():
