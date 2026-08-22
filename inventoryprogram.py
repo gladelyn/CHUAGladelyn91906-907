@@ -4,9 +4,11 @@ reports = [] #stores all incident reports
 
 #Student Class, represents the student and their inventory items
 class Student:
-    def __init__(self, student_id):
+    def __init__(self, student_id, name, email):
         self.student_id = student_id #stores student ID number
         self.inventory = [] #stores inventory items for this student
+        self.name = name #stores user's name as well
+        self.email = email #stores user's email
 
     def add_item(self): #allows this student to add items
         #getting the details of this item from user
@@ -57,6 +59,10 @@ def login():
 
     #if the student doesn't exist, a new Student object is created
     if student_id not in students:
+        #signing up new student details
+        name = input("Enter your name: ") 
+        email = input("Enter your email: ")
+        
         students[student_id] = Student(student_id) 
 
     #return the Student object for the current logged-in student
