@@ -164,7 +164,7 @@ def signup(students):
             if student_id not in students:
                 break
             else:
-                print("This Student ID is already registered.")
+                print("This Student ID is already registered. If this ID is yours, go to login page.")
         else:
             print("Invalid! Please enter a 5-digit Student ID.")
 
@@ -204,7 +204,7 @@ def login(students):
         return None
 
     #ask user for their desired password
-    password = input("Enter a password: ")
+    password = input("Enter your password: ")
     hashed_pswd = hash_pswd(password)
     #after password is hashed, compare with stored password to check whether it matches
     if students[student_id].password == hashed_pswd:
@@ -217,10 +217,18 @@ def login(students):
         return None
 
 #allows student to report a theft or missing item
-def report_incident():
+def report_incident(reports):
     #getting the details of incident from user
     location = input("Enter the location: ")
-    incident_type = input("Incident Type (theft/missing): ")
+
+    #validation loop to check whether incident type fits the two options
+    while True:
+        incident_type = input("Incident Type (theft/missing): ")
+        if incident_type == "theft" or incident_type == "missing":
+            break
+        else:
+            print("Invalid incident type. Please enter as either a theft or missing item incident.")
+
     student_id = input("Enter your Student ID: ")
 
     #stores the incident information in a dictionary
@@ -245,7 +253,7 @@ def report_analysis(students, reports):
     total_items = 0
     for student in students.values():
         total_items += len(student.inventory)
-    #then coun the total number of reports submitted
+    #then count the total number of reports submitted
     total_reports = len(reports)
 
     print(f"\nTotal Registered Students: {total_students}")
@@ -257,9 +265,9 @@ def report_analysis(students, reports):
     missingitems = 0
     for report in reports:
         if report["Type of Incident"]== "theft":
-            theft_count +=1
+            thefts +=1
         elif report["Type of Incident"]== "missing":
-            missing_count+=1
+            missingitems+=1
 
     print("\n----- Incident Report Trends -----")
     print(f"Theft Reports: {thefts}")
@@ -282,6 +290,9 @@ def report_analysis(students, reports):
 students = load_students()
 reports = load_reports()
 print("\n------------- Inventory Management -------------")
+
+#to check whether as the program continues, a user has signed up/logged in or not as it provides a clean slate when program starts.
+current_student = None 
 
 while True:
     print("\n-------------- Sign Up or Log In --------------")
@@ -307,45 +318,48 @@ while True:
         print("Invalid Option. Please choose between 1-3.")
 
 #keep displaying menu until the user wants to exit
-while True:
-    print("\n-------------- Main Menu --------------")
-    print("1. Add Item")
-    print("2. View Inventory")
-    print("3. Remove Item")
-    print("4. Report Incident")
-    print("5. Incident Report Trends")
-    print("6. Switch User")
-    print("7. Exit")
+#if statement ensures that main menu will only proceed if a user has logged in and signed up
+if current_student is not None:
+    while True:
+        print("\n-------------- Main Menu --------------")
+        print("1. Add Item")
+        print("2. View Inventory")
+        print("3. Remove Item")
+        print("4. Report Incident")
+        print("5. Incident Report Trends")
+        print("6. Switch User")
+        print("7. Exit")
 
-    #asking the user which function they want to use
-    choice = input("Choose an option: ")
-    #adding item to current student's inventory
-    if choice == "1":
-        current_student.add_item()
-    #viewing current student's inventory
-    elif choice == "2":
-        current_student.view_inventory()
-    #deleting item
-    elif choice == "3":
-        current_student.delete_item()
-        #then save the updated inventory to the JSON file
-        save_students(students)
-    #submit a report
-    elif choice == "4":
-        reports = report_incident(reports)
-        save_reports(reports)
-    #analysing the reports made
-    elif choice == "5":
-        report_analysis(students, reports)
-    #logging in as a different student
-    elif choice == "6":
-        current_student = login()
-    #end the program
-    elif choice == "7":
-        save_students(students)
-        save_reports(reports)
-        print("Goodbye!")
-        break
-    #handles menu choices that are not between 1-5
-    else:
-        print("Invalid option.")
+        #asking the user which function they want to use
+        choice = input("Choose an option: ")
+        #adding item to current student's inventory
+        if choice == "1":
+            current_student.add_item()
+            save_students(students) #to save the updated inventory as it is updated.
+        #viewing current student's inventory
+        elif choice == "2":
+            current_student.view_inventory()
+        #deleting item
+        elif choice == "3":
+            current_student.delete_item()
+            #then save the updated inventory to the JSON file
+            save_students(students)
+        #submit a report
+        elif choice == "4":
+            reports = report_incident(reports)
+            save_reports(reports)
+        #analysing the reports made
+        elif choice == "5":
+            report_analysis(students, reports)
+        #logging in as a different student
+        elif choice == "6":
+            current_student = login(students)
+        #end the program
+        elif choice == "7":
+            save_students(students)
+            save_reports(reports)
+            print("Goodbye!")
+            break
+        #handles menu choices that are not between 1-5
+        else:
+            print("Invalid option.")
