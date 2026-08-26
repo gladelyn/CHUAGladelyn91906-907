@@ -4,6 +4,8 @@ from tkinter import*
 from tkinter import messagebox
 from tkinter import PhotoImage
 from PIL import Image, ImageTk
+import json
+import hashlib
 
 #student class
 class Student():
@@ -42,6 +44,9 @@ def save_students():
         }
     with open("students.json","w") as file:
         json.dump(data,file,indent = 4)
+
+def hash_pswd(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
 #inventory main app class
 class InventoryApp:
@@ -102,7 +107,50 @@ class InventoryApp:
         self.clear_main_frame()
         self.clear_footer()
         Label(self.main_frame,text="CREATE ACCOUNT",font=("Garamond", 28, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=50)  
-        Button(self.main_frame,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Back to Login",command=self.show_login).pack(pady=20)
+        Label(self.main_frame, text = "Name", bg = "aliceblue").pack()
+        nameentry = Entry(self.main_frame, width = 30)
+        nameentry.pack(pady = 5)
+        Label(self.main_frame, text = "Student ID",bg = "aliceblue").pack()
+        identry = Entry(self.main_frame, width =30)
+        identry.pack(pady = 5)
+        Label(self.main_frame, text = "Email", bg = "aliceblue").pack()
+        emailentry = Entry(self.main_frame, width = 30)
+        emailentry.pack(pady = 5)
+        Label(self.main_frame, text = "Password", bg = "aliceblue").pack()
+        pswdentry = Entry(self.main_frame, width = 30, show = "*")
+        pswdentry.pack(pady = 5)
+        def signup():
+            name = nameentry.get().strip()
+            student_id = identry.get().strip()
+            email = emailentry.get().strip()
+            password = pswdentry.get().strip()
+
+            #check for empty fields
+            if not name or not student_id or not email or not password:
+                messagebox.showwarning("Missing Information","Please complete all fields.")
+                return
+            #check student id
+            if not student_id.isdigit() or len(student_id)!= 5:
+                messagebox.showerror("Invalid Student ID","Student ID must be 5 digits")
+                return
+            student_id = int(student_id)
+            #checking whether the id already exists
+            if student_id in self.students:
+                messagebox.showerror("Account Already Exists","This Student ID is already registed.")
+                return
+            #creating the student object after signup is verified
+            student = Student(student_id, name, email, hash_pswd(password))
+            #adding student to the dictionary and saving as current student
+            self.students[student_id] = student
+            save_students(self.students)
+            self.current_student = student
+            messagebox.showinfo("Account Successfully Created",f"Hello {name}, welcome to the Inventory Management System!")
+
+            #return to dashboard
+            self.show_home()
+
+        Button(self.main_frame, text = "Sign Up",bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue", width = 20, command = signup).pack(pady = 15)
+        Button(self.main_frame,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Back to Login",width = 20, command=self.show_login).pack()
 
     def create_footer(self):
         cards = [
