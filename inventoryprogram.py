@@ -10,48 +10,113 @@ class InventoryApp:
 
     def __init__(self, root):
         self.root = root
-        self.root.title("Inventory Management System" )
+        self.root.title("Inventory Management System")
         self.root.state("zoomed")
-        self.root.configure(bg = "aliceblue")
-        # Stores the frame currently being displayed
-        self.current_frame = None
-        self.show_start()
+        self.root.configure(bg="aliceblue" )
 
-#clearing the current frame (reset)
-    def clear_frame(self):
-        if self.current_frame is not None:
-            self.current_frame.destroy()
-        self.current_frame = Frame(self.root,bg="aliceblue" )
-        self.current_frame.pack(fill=BOTH,expand=True)
+        self.title_frame = Frame(self.root,bg="midnightblue",height=80)
+        self.title_frame.pack(fill=X)
+        self.title_frame.pack_propagate(False)
+        Label(self.title_frame,text="INVENTORY MANAGEMENT SYSTEM",font=("Garamond", 24, "bold"),bg="midnightblue",fg="white").pack(pady=20)
 
+        self.main_frame = Frame(self.root,bg="aliceblue")
+        self.main_frame.pack(fill=BOTH,expand=True)
 
-#start menu
-    def show_start(self):
-        self.clear_frame()
-        Label(self.current_frame,text="INVENTORY MANAGEMENT SYSTEM",font=("Garamond", 28, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=80)
-        Button(self.current_frame,text="Login",font=("Garamond", 16),width=20,height=2,command=self.show_login).pack(pady=10)
-        Button(self.current_frame,text="Sign Up",font=("Garamond", 16),width=20,height=2,command=self.show_signup).pack(pady=10)
-        Button(self.current_frame,text="Exit",font=("Garamond", 16),width=20,height=2,command=self.root.destroy).pack(pady=10)
+        self.footer_frame = Frame(self.root,bg="white",height=160)
+        self.footer_frame.pack(fill=X)
+        self.footer_frame.pack_propagate(False)
 
-#login page
+        # Start with the login page
+        self.show_login()
+
+    def clear_main_frame(self):
+        for widget in self.main_frame.winfo_children():
+            widget.destroy()
+
+    def clear_footer(self):
+        for widget in self.footer_frame.winfo_children():
+            widget.destroy()
+
     def show_login(self):
-        self.clear_frame()
-        Label(self.current_frame,text="LOGIN",font=("Garamond", 26, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=60)
-        Label(self.current_frame,text="Student ID",bg="aliceblue").pack()
-        student_id_entry = Entry(self.current_frame,width=30)
-        student_id_entry.pack(pady=10)
-        Label(self.current_frame,text="Password",bg="aliceblue").pack()
-        password_entry = Entry(self.current_frame,width=30,show="*" )
-        password_entry.pack(pady=10)
-        Button(self.current_frame,text="Login",command=lambda: messagebox.showinfo("Login","Login will be added in Commit 3.")).pack(pady=20)
-        Button(self.current_frame,text="Back",command=self.show_start).pack()
+        self.clear_main_frame()
+        self.clear_footer()
 
-   #signup page
+        Label(self.main_frame,text="LOGIN",font=("Garamond", 28, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=50)
+        Label(self.main_frame,text="Student ID",font=("Calibri", 12),bg="aliceblue").pack()
+        Entry(self.main_frame,width=30).pack(pady=10)
+        Label(self.main_frame,text="Password",font=("Calibri", 12),bg="aliceblue").pack()
+        Entry(self.main_frame,width=30,show="*").pack(pady=)
+        Button(self.main_frame,text="Login",width=20).pack(pady=20)
+        Button(self.main_frame,text="Create Account",width=20,command=self.show_signup).pack()
+
+        # Footer is only displayed on login
+        self.create_footer()
+
+
     def show_signup(self):
-        self.clear_frame()
-        Label(self.current_frame,text="CREATE ACCOUNT",font=("Garamond", 26, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=60)
-        Label(self.current_frame,text="Signup will be added in Commit 3.",bg="aliceblue").pack()
-        Button(self.current_frame,text="Back",command=self.show_start).pack(pady=20)
+        self.clear_main_frame()
+        self.clear_footer()
+        Label(self.main_frame,text="CREATE ACCOUNT",font=("Garamond", 28, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=50)
+
+       
+        Button(self.main_frame,text="Back to Login",command=self.show_login).pack(pady=20)
+
+    def create_footer(self):
+        cards = [
+            ("📦","Easy Inventory","Keep track of your items."),
+
+            ("🔒","Secure","Your information is protected."),
+
+            ("🔔","Notifications","Stay updated about your items."),
+
+            ( "📊","Reports","Analyse inventory trends."
+            )
+        ]
+
+        for icon, title, description in cards:
+
+            card = Frame(
+                self.footer_frame,
+                bg="aliceblue",
+                bd=1,
+                relief="solid"
+            )
+
+            card.pack(
+                side=LEFT,
+                expand=True,
+                fill=BOTH,
+                padx=10,
+                pady=15
+            )
+
+
+            Label(
+                card,
+                text=icon,
+                font=("Segoe UI Emoji", 22),
+                bg="aliceblue"
+            ).pack(
+                pady=5
+            )
+
+
+            Label(
+                card,
+                text=title,
+                font=("Garamond", 13, "bold"),
+                bg="aliceblue"
+            ).pack()
+
+
+            Label(
+                card,
+                text=description,
+                font=("Calibri", 10),
+                bg="aliceblue"
+            ).pack(
+                pady=5
+            )
 
 
 #start the program
