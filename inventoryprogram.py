@@ -45,7 +45,7 @@ class InventoryApp:
         Label(self.main_frame,text="Student ID",font=("Calibri", 12),bg="aliceblue").pack()
         Entry(self.main_frame,width=30).pack(pady=10)
         Label(self.main_frame,text="Password",font=("Calibri", 12),bg="aliceblue").pack()
-        Entry(self.main_frame,width=30,show="*").pack(pady=)
+        Entry(self.main_frame,width=30,show="*").pack(pady=10)
         Button(self.main_frame,text="Login",width=20).pack(pady=20)
         Button(self.main_frame,text="Create Account",width=20,command=self.show_signup).pack()
 
@@ -63,13 +63,13 @@ class InventoryApp:
 
     def create_footer(self):
         cards = [
-            ("📦","Easy Inventory","Keep track of your items."),
+            ("📦","Pocket Inventory","Keep track of \nstudent belongings."),
 
-            ("🔒","Secure","Your information is protected."),
+            ("🔒","Protected Data","Secure storage\n for all records."),
 
-            ("🔔","Notifications","Stay updated about your items."),
+            ("🔔","Easy Management","Quickly manage and stay\n updated about your items."),
 
-            ( "📊","Reports","Analyse inventory trends."
+            ( "📊","Statistical Analysis","View inventory and school\n statistics easily."
             )
         ]
 
