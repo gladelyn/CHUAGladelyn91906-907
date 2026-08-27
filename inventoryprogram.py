@@ -213,10 +213,15 @@ class InventoryApp:
             #switch to dashboard/homepage
             self.show_home()
 
+        def clear_fields():
+            identry.delete(0,END)
+            pswdentry.delete(0,END)
+
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady =20)
-        Button(buttonframe,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Login",width=20,command = login).pack(side = LEFT, padx = 8)
-        Button(buttonframe,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Create Account",width=20,command=self.show_signup).pack(side = LEFT, padx = 8)
+        self.create_button(buttonframe, "Clear Fields",clear_fields,20)
+        self.create_button(buttonframe,"Login",login,20)
+        self.create_button(buttonframe,"Create Account",self.show_signup,20)
 
         
         self.create_footer()
@@ -264,15 +269,14 @@ class InventoryApp:
             save_students(self.students)
             self.current_student = student
             messagebox.showinfo("Account Successfully Created",f"Hello {name}, welcome to the Inventory Management System!")
+            #return to dashboard
+            self.show_home()
 
         def clear_fields():
             nameentry.delete(0,END)
             identry.delete(0,END)
             emailentry.delete(0,END)
-            pswdentry.delete(0,END)
-
-            #return to dashboard
-            self.show_home()
+            pswdentry.delete(0,END)           
 
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
@@ -323,10 +327,11 @@ class InventoryApp:
                 Label(inventoryframe, text = item["ID Number"],bg = "white", width = 20).grid(row = index +1, column = 1, padx = 10, pady = 5)
                 Label(inventoryframe, text = item["Due Date"], bg = "white",width = 20).grid(row = index +1, column = 2, padx = 10, pady = 5)
 
-        
-        Button(self.main_frame, text = "Add an Item", width = 20, command = self.add_item).pack(side =LEFT, padx = 10, pady = 20)
-        Button(self.main_frame, text = "Remove an Item", width = 20, command = self.delete_item).pack(side = LEFT, padx = 10, pady = 20)
-        Button(self.main_frame, text = "Return to Dashboard",width = 20, command = self.show_home).pack(side = LEFT, padx = 10, pady = 20)
+        buttonframe = Frame(self.main_frame, bg = "aliceblue")
+        buttonframe.pack(pady = 20)
+        self.create_button(buttonframe, "Add an Item", self.add_item)
+        self.create_button(self.main_frame,  "Remove an Item", self.delete_item)
+        self.create_button(buttonframe,"Return to Dashboard", self.show_home)
 
     def add_item(self):
         #creating a new separate window to add items from
@@ -345,6 +350,12 @@ class InventoryApp:
         Label(addwindow, text = "Due Date",bg = "aliceblue").pack()
         dueentry = Entry(addwindow, width = 30)
         dueentry.pack(pady = 8)
+
+        def clear_fields():
+            nameentry.delete(0,END)
+            identry.delete(0,END)
+            dueentry.delete(0,END)
+        
 
         def save_item():
             item_name = nameentry.get().strip()
@@ -379,8 +390,11 @@ class InventoryApp:
             addwindow.destroy()
             self.show_inventory()
 
-        Button(addwindow, text = "Save Item", width = 20, command = save_item).pack(pady = 20)
-        Button(addwindow, text = "Cancel", width = 20, command = addwindow.destroy).pack()
+        buttonframe = Frame(addwindow, bg = "aliceblue")
+        buttonframe.pack(pady = 20)
+        self.create_button(buttonframe, "Clear Fields",clear_fields,20)
+        self.create_button(buttonframe, "Save Item", save_item,20).pack(pady = 20)
+        self.create_button(buttonframe,"Cancel", addwindow.destroy,20)
 
     def delete_item(self):
         student = self.current_student
