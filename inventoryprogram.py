@@ -91,12 +91,39 @@ class InventoryApp:
         self.clear_main_frame()
         self.clear_footer()
 
-        Label(self.main_frame,text="LOGIN",font=("Garamond", 28, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=50)
+        Label(self.main_frame,text="LOGIN",font=("Garamond", 28, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=40)
         Label(self.main_frame,text="Student ID",font=("Calibri", 12),bg="aliceblue").pack()
-        Entry(self.main_frame,width=30).pack(pady=10)
+        identry = Entry(self.main_frame, width = 30)
+        identry.pack(pady = 10)
         Label(self.main_frame,text="Password",font=("Calibri", 12),bg="aliceblue").pack()
-        Entry(self.main_frame,width=30,show="*").pack(pady=10)
-        Button(self.main_frame,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Login",width=20).pack(pady=20)
+        pswdentry = Entry(self.main_frame, width = 30, show = "*")
+        pswdentry.pack(pady =10)
+        def login():
+            studennt_id = identry.get().strip()
+            password = pswdentry.get()
+            #checking for empty fields
+            if not student_id or not password:
+                messagebox.showwarning("Missing Information","Please enter your Student ID and password.")
+                return
+            #validating the student id
+            if not student_id.isdigit() or len(student_id) !=5:
+                messagebox.showerror("Invalid Student ID","Student ID must be 5 digits.")
+                return
+            #checking whether ID has been signed up already
+            if student_id not in self.students:
+                messagebox.showerror("Login Failed","Student ID does not exist, please go to sign up")
+                return
+            student = self.students[student_id]
+            #checking the password against hashed password
+            if hash_pswd(password) != student.password:
+                messagebox.showerror("Login Failed","Incorrect Password. Please try again.")
+                return
+            #store the current student as object
+            self.current_student = student
+            #switch to dashboard/homepage
+            self.show_home()
+
+        Button(self.main_frame,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Login",width=20,command = login).pack(pady=20)
         Button(self.main_frame,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Create Account",width=20,command=self.show_signup).pack()
 
         # Footer is only displayed on login
