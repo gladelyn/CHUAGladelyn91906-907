@@ -16,6 +16,14 @@ class Student():
         self.password = password
         self.inventory = []
 
+    def add_item(self, item):
+        self.inventory.append(item)
+
+    def delete_item(self, index):
+        if 0<= index <len(self.inventory):
+            return self.inventory.pop(index)
+        return None
+
 def load_students():
     try:
         with open('students.json','r') as file:
@@ -196,6 +204,119 @@ class InventoryApp:
         Button(self.main_frame, text = "🔔 Notifications", width = 25, height = 2, command = self.show_notifications).pack(pady = 5)
         Button(self.main_frame, text = "🚨 Report an Incident",width = 25, height = 2, command = self.show_reports).pack(pady = 5)
         Button(self.main_frame, text = "Logout", width = 25, height = 2, command = self.logout).pack(pady = 15)
+
+    def show_inventory(self):
+        self.clear_main_frame()
+        self.clear_footer()
+        student = self.current_student
+
+        Label(self.main_frame, text = "My Inventory", font = ("Garamond",28,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady =25)
+        Label(self.main_frame, text = f"{student.name}'stored items",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
+
+        inventoryframe = Frame(self.main_frame, bg = "aliceblue")
+        inventoryframe.pack(fill = BOTH, expand = True, padx = 50, pady = 20)
+        Label(inventoryframe, text = "Item Name", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 0, padx = 20, pady = 10)
+        Label(inventoryframe, text = "ID Number", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 2, padx = 20, pady = 10)
+        #displaying the items
+        if len(student.inventory) ==0:
+            Label(inventoryframe, text = "No items have been stored yet.",font = ("Calibri",12),bg = "aliceblue").grid(row = 1, column = 0, columnspan = 3, pady = 30)
+        else:
+            for index, item in enumerate(student.inventory):
+                Label(inventoryframe, text = item["Name"],bg = "white",width =20).grid(row = index + 1, column = 0, padx = 10, pady = 5)
+                Label(inventoryframe, text = item["ID Number"],bg = "white", width = 20).grid(row = index +1, column = 1, padx = 10, pady = 5)
+                Label(inventoryframe, text = item["Due Date"], bg = "white",width = 20).grid(row = index +1, column = 2, padx = 10, pady = 5)
+
+        Button(self.main_frame, text = "Add an Item", width = 20, command = self.add_item).pack(side =LEFT, padx = 10, pady = 20)
+        Button(self.main_frame, text = "Remove an Item", width = 20, command = self.delete_item).pack(side = LEFT, padx = 10, pady = 20)
+        Button(self.main_frame, text = "Return to Dashboard",width = 20, command = self.show_home).pack(side = LEFT, padx = 10, pady = 20)
+
+    def add_item(self):
+        #creating a new separate window to add items from
+        addwindow = Toplevel(self.root)
+        addwindow.title("Add an Item")
+        addwindow.geometry("400x400")
+        addwindow.configure(bg = "aliceblue")
+
+        Label(addwindow, text = "Add an item to your inventory", font = ("Garamond",22,"bold"),bg = "aliceblue",fg = "midnightblue" ).pack(pady =25)
+        Label(addwindow, text = "Item Name",bg = "aliceblue").pack()
+        nameentry = Entry(addwindow, width = 30)
+        nameentry.pack(pady = 8)
+        Label(addwindow,text = "ID Number",bg = "aliceblue").pack()
+        identry = Entry(addwindow,width = 30)
+        identry.pack(pady = 8)
+        Label(addwindow, text = "Due Date",bg = "aliceblue").pack()
+        dueentry = Entry(addwindow, width = 30)
+        dueentry.pack(pady = 8)
+
+        def save_item():
+            item_name = nameentry.get().strip()
+            item_id = identry.get().strip()
+            due_date = dueentry.get().strip()
+            #checking for empty fields
+            if not item_name or not item_id or not due_date:
+                messagebox.showwarning("Missing Informaiton","Please complete all fields.")
+                return
+            #creating an item dictionary to store it as a set
+            item = {
+                "Name":item_name,
+                "ID Number":item_id,
+                "Due Date": due_date
+            }
+            #adding item to current student's inventory list then saving
+            self.current_student.add_item(item)
+            save_students(self.students)
+            messagebox.showinfo("Item Added","Your item has been successfully added.")
+
+            addwindow.destroy()
+            self.show_inventory()
+
+        Button(addwindow, text = "Save Item", width = 20, command = save_item).pack(pady = 20)
+        Button(addwindow, text = "Cancel", width = 20, command = addwindow.destroy).pack()
+
+    def delete_item(self):
+        student = self.current_student
+        #again, checking whether inventory is empty
+        if len(student.inventory) == 0:
+            messagebox.showinfo("No Items","There are no items to remove.")
+            return
+
+        #creating a new separate window to remove items
+        deletewindow = Toplevel(self.root)
+        deletewindow.title("Remove an Item")
+        deletewindow.geometry("400x400")
+        deletewindow.configure(bg = "aliceblue")
+
+        Label(deletewindow, text = "Remove an item from your inventory.",font = ("Garamond",22,"bold"),bg = "aliceblue",fg ="midnightblue").pack(pady = 20)
+        Label(deletewindow, text = "Select the number of the item you wish to remove: ",bg = "aliceblue").pack(pady = 10)
+
+        for index, item in enumerate(student.inventory):
+            Label(deletewindow, text = f"{index+1}.{item["Name"]}"f"({item["ID Number"]})",bg = "aliceblue").pack(pady = 3)
+
+        indexentry = Entry(deletewindow, width = 20)
+        indexentry.pack(pady = 15)
+
+        def confirm_delete():
+            index_text = indexentry.get().strip()
+            if not index_text.isdigit():
+                messagebox.showerror("Invalid Input","Please enter a valid item number from the list.")
+                return
+            index = int(index_text) - 1
+            if index < 0 or index >= len(student.inventory):
+                messagebox.showerror("Invalid Item","That item number does not exist")
+                return
+
+            item_name = student.inventory[index]["Name"]
+            confirmation = messagebox.askyesno("Confirm Delete",f"Are you sure you want to remove "f"'{item_name}'?")
+            if confirmation:
+                student.delete_item(index)
+                save_students(self.students)
+                messagebox.showinfo("Item Deleted","Item Successfully Removed")
+                deletewindow.destroy()
+                self.show_inventory()
+
+        Button(deletewindow, text = "Remove", width =20, command = confirm_delete).pack(pady = 10)
+        Button(deletewindow, text = "Cancel", width = 20, command = deletewindow.destroy).pack()
+        
 
     def create_stat_card(self, parent, icon, title, value):
         card = Frame(parent, bg = "white", bd = 1, relief = "solid",width = 220, height = 130)
