@@ -179,6 +179,36 @@ class InventoryApp:
         Button(self.main_frame, text = "Sign Up",bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue", width = 20, command = signup).pack(pady = 15)
         Button(self.main_frame,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Back to Login",width = 20, command=self.show_login).pack()
 
+    def show_home(self):
+        self.clear_main_frame()
+        self.clear_footer()
+        student = self.current_student
+
+        Label(self.main_frame, text = f"Welcome, {student.name}", font = ("Garamond", 28, "bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 30)
+        Label(self.main_frame, text = "Inventory Dashboard", font = ("Calibri",14),bg = "aliceblue").pack()
+        stats_frame = Frame(self.main_frame, bg = "aliceblue")
+        statsframe.pack(pady = 30)
+        self.create_stats_card(stats_frame,"📦", "Total Items", len(student.inventory) )
+
+        #quick action buttons
+        Label(self.main_frame, text = "Quick Actions",font = ("Garamond",20,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
+        Button(self.mainframe,text = "📦 Manage Your Inventory", width = 25,height = 2, command = self.show_inventory).pack(pady = 5)
+        Button(self.main_frame, text = "🔔 Notifications", width = 25, height = 2, command = self.show_notifications).pack(pady = 5)
+        Button(self.main_frame, text = "🚨 Report an Incident",width = 25, height = 2, command = self.show_reports).pack(pady = 5)
+        Button(self.main_frame, text = "Logout", width = 25, height = 2, command = self.logout).pack(pady = 15)
+
+    def create_stat_card(self, parent, icon, title, value):
+        card = Frame(parent, bg = "white", bd = 1, relief = "solid",width = 220, height = 130)
+        card.pack(side = LEFT, padx =10)
+        card.pack_propagate(False)
+        Label(card, text = icon, font = ("Segoe UI Emoji", 25), bg = "white").pack(pady = 5)
+        Label(card, text = title, font = ("Garamond",13,"bold"),bg = "white").pack()
+        Label(card, text = value, font = ("Garamond",20,"bold"),bg ="white").pack()
+
+    def logout(self):
+        self.current_student = None
+        self.show_login()
+
     def create_footer(self):
         cards = [
             ("📦","Pocket Inventory","Keep track of \nstudent belongings."),
