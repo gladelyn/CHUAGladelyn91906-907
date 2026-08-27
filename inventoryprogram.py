@@ -259,13 +259,20 @@ class InventoryApp:
             self.current_student = student
             messagebox.showinfo("Account Successfully Created",f"Hello {name}, welcome to the Inventory Management System!")
 
+        def clear_fields():
+            nameentry.delete(0,END)
+            identry.delete(0,END)
+            emailentry.delete(0,END)
+            pswdentry.delete(0,END)
+
             #return to dashboard
             self.show_home()
 
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
+        Button(buttonframe, text = "Clear Fields",bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",width = 20,command = clear_fields).pack(side = LEFT, padx = 8)
         Button(buttonframe, text = "Sign Up",bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue", width = 20, command = signup).pack(side = LEFT, padx = 8)
-        Button(buttonframe,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Back to Login",width = 20, command=self.show_login).pack(side = LEFT, padx =8)
+        Button(buttonframe,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Return to Login",width = 20, command=self.show_login).pack(side = LEFT, padx =8)
 
         self.create_footer()
 
