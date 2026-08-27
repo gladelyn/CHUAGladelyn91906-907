@@ -207,10 +207,12 @@ class InventoryApp:
             #switch to dashboard/homepage
             self.show_home()
 
-        Button(self.main_frame,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Login",width=20,command = login).pack(pady=20)
-        Button(self.main_frame,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Create Account",width=20,command=self.show_signup).pack()
+        buttonframe = Frame(self.main_frame, bg = "aliceblue")
+        buttonframe.pack(pady =20)
+        Button(buttonframe,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Login",width=20,command = login).pack(side = LEFT, padx = 8)
+        Button(buttonframe,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Create Account",width=20,command=self.show_signup).pack(side = LEFT, padx = 8)
 
-        # Footer is only displayed on login
+        
         self.create_footer()
 
 
@@ -260,8 +262,12 @@ class InventoryApp:
             #return to dashboard
             self.show_home()
 
-        Button(self.main_frame, text = "Sign Up",bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue", width = 20, command = signup).pack(pady = 15)
-        Button(self.main_frame,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Back to Login",width = 20, command=self.show_login).pack()
+        buttonframe = Frame(self.main_frame, bg = "aliceblue")
+        buttonframe.pack(pady = 20)
+        Button(buttonframe, text = "Sign Up",bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue", width = 20, command = signup).pack(side = LEFT, padx = 8)
+        Button(buttonframe,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Back to Login",width = 20, command=self.show_login).pack(side = LEFT, padx =8)
+
+        self.create_footer()
 
     def show_home(self):
         self.clear_main_frame()
@@ -276,10 +282,12 @@ class InventoryApp:
 
         #quick action buttons
         Label(self.main_frame, text = "Quick Actions",font = ("Garamond",20,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
-        Button(self.mainframe,text = "📦 Manage Your Inventory", width = 25,height = 2, command = self.show_inventory).pack(pady = 5)
-        Button(self.main_frame, text = "🔔 Notifications", width = 25, height = 2, command = self.show_notifications).pack(pady = 5)
-        Button(self.main_frame, text = "🚨 Report an Incident",width = 25, height = 2, command = self.show_reports).pack(pady = 5)
-        Button(self.main_frame, text = "Logout", width = 25, height = 2, command = self.logout).pack(pady = 15)
+        buttonframe = Frame(self.main_frame, bg = "aliceblue")
+        buttonframe.pack(pady = 20)
+        Button(buttonframe,text = "📦 Manage Your Inventory", width = 25,height = 2, command = self.show_inventory).pack(side = LEFT, padx = 8)
+        Button(buttonframe, text = "🔔 Notifications", width = 25, height = 2, command = self.show_notifications).pack(side = LEFT,padx = 8)
+        Button(buttonframe, text = "🚨 Report an Incident",width = 25, height = 2, command = self.show_reports).pack(side = LEFT,padx = 8)
+        Button(buttonframe, text = "Logout", width = 25, height = 2, command = self.logout).pack(side = LEFT, padx = 8)
 
     def show_inventory(self):
         self.clear_main_frame()
@@ -302,6 +310,7 @@ class InventoryApp:
                 Label(inventoryframe, text = item["ID Number"],bg = "white", width = 20).grid(row = index +1, column = 1, padx = 10, pady = 5)
                 Label(inventoryframe, text = item["Due Date"], bg = "white",width = 20).grid(row = index +1, column = 2, padx = 10, pady = 5)
 
+        
         Button(self.main_frame, text = "Add an Item", width = 20, command = self.add_item).pack(side =LEFT, padx = 10, pady = 20)
         Button(self.main_frame, text = "Remove an Item", width = 20, command = self.delete_item).pack(side = LEFT, padx = 10, pady = 20)
         Button(self.main_frame, text = "Return to Dashboard",width = 20, command = self.show_home).pack(side = LEFT, padx = 10, pady = 20)
