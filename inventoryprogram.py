@@ -21,13 +21,18 @@ class InventoryItem:
     def mark_as_returned(self):
         self.status = "Returned"
 
-#student class
-class Student():
-    def __init__(self, student_id, email, name, password):
-        self.student_id = student_id
-        self.email = email
+#User class (generic parent class which has all the attributes for teacher and student)
+class User:
+    def __init__(self, name, email, password):
         self.name = name
+        self.email = email
         self.password = password
+
+#student class
+class Student(User):
+    def __init__(self, student_id, email, name, password):
+        User.__init__(self,name,email,password)
+        self.student_id = student_id
         self.inventory = []
 
     def add_item(self, item):
@@ -37,6 +42,11 @@ class Student():
         if 0<= index <len(self.inventory):
             return self.inventory.pop(index)
         return None
+
+class Teacher(User):
+    def __init__(self, teachercode, name, email, password):
+        User.__init__(self,name, email, password)
+        self.teachercode = teachercode
 
 def load_students():
     try:
