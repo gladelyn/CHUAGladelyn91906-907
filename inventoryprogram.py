@@ -4,6 +4,7 @@ from tkinter import*
 from tkinter import messagebox
 from tkinter import PhotoImage
 from PIL import Image, ImageTk
+from datetime import datetime
 import json
 import hashlib
 
@@ -20,6 +21,17 @@ class InventoryItem:
 
     def mark_as_returned(self):
         self.status = "Returned"
+
+    def check_overdue(self):
+        try:
+            due_date = datetime.striptime(self.due_date,"%d/%m/%Y")
+            if datetime.now() >due_date:
+                self.status = "Overdue"
+                return True
+        except ValueError:
+            return False
+        return False
+
 
 #User class (generic parent class which has all the attributes for teacher and student)
 class User:
