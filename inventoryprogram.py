@@ -7,6 +7,20 @@ from PIL import Image, ImageTk
 import json
 import hashlib
 
+#inventory items class
+class InventoryItem:
+    def __init__(self, name, item_id, due_date):
+        self.name = name
+        self.item_id = item_id
+        self.due_date = due_date
+        self.status = "Borrowed"
+
+    def mark_as_missing(self):
+        self.status = "Missing"
+
+    def mark_as_returned(self):
+        self.status = "Returned"
+
 #student class
 class Student():
     def __init__(self, student_id, email, name, password):
@@ -316,7 +330,7 @@ class InventoryApp:
 
         Button(deletewindow, text = "Remove", width =20, command = confirm_delete).pack(pady = 10)
         Button(deletewindow, text = "Cancel", width = 20, command = deletewindow.destroy).pack()
-        
+
 
     def create_stat_card(self, parent, icon, title, value):
         card = Frame(parent, bg = "white", bd = 1, relief = "solid",width = 220, height = 130)
