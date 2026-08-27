@@ -56,7 +56,7 @@ class Student(User):
             return self.inventory.pop(index)
         return None
 
-    def add_notification(self, notifications):
+    def add_notification(self, notification):
         self.notifications.append(notification)
 
 class Teacher(User):
@@ -129,6 +129,13 @@ class Notification:
 
     def mark_as_read(self):
         self.read = True
+
+    def to_dictionary(self):
+        return {
+            "Message":self.message,
+            "Type":self.notification_type,
+            "Read":self.read
+        }
 
 #inventory main app class
 class InventoryApp:
@@ -289,6 +296,7 @@ class InventoryApp:
     def show_home(self):
         self.clear_main_frame()
         self.clear_footer()
+        self.check_notifications()
         student = self.current_student
 
         Label(self.main_frame, text = f"Welcome, {student.name}", font = ("Garamond", 28, "bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 30)
@@ -367,7 +375,7 @@ class InventoryApp:
                 return
             #checking for valid date time
             try:
-                valid_date = datetime.strptime(due_date,"%d,%m,%Y")
+                valid_date = datetime.strptime(due_date,"%d/%m/%Y")
             except ValueError:
                 messagebox.showerror("Invalid Date","Please enter a valid date in DD/MM/YYYY format.")
                 return
@@ -441,7 +449,7 @@ class InventoryApp:
         Button(deletewindow, text = "Cancel", width = 20, command = deletewindow.destroy).pack()
 
     def show_notifications(self):
-        self.clear_main_frame_()
+        self.clear_main_frame()
         self.clear_footer()
 
         Label(self.main_frame, text = "Notifications",font = ("Garamond",28,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady =30)
@@ -449,9 +457,34 @@ class InventoryApp:
             Label(self.main_frame, text = "You have no new notifications.", bg = "aliceblue").pack(pady=20)
         else:
             for notification in self.current_student.notifications:
-                Label(self.main_frame, text = notification.message, bg = "white",width = 60, pady=10).pack(pady = 5)
+                if not notification.read:
+                    Label(self.main_frame, text = f"⚠ {notification.message}",bg = "white",width = 60, pady = 10).pack(pady = 5)
+                    
 
         Button(self.main_frame, text = "Return to Dashboard", command = self.show_home).pack(pady = 20)
+
+    def check_notifications(self):
+        student = self.current_student
+        for item in student.inventory:
+            try:
+                due_date = datetime.strptime(item["Due Date"],"%d/%m/%Y")
+            except ValueError:
+                continue
+            if due_date.date() < datetime.now().date():
+                message = (
+                    f"Your item '{item["Name"]}'"
+                    f"is overdue."
+                    f"It was due on {item["Due Date"]}."
+                )
+                #check if this notification already exists
+                notification_exists = False
+                for notification in student.notifications:
+                    if notification.message == message:
+                        notification_exists = True
+                        break
+                if not notification_exits:
+                    notification = Notification(message, "Overdue")
+                    student.add_notification(notification)
 
     def show_teacher_dashboard(self):
         self.clear_main_frame()
