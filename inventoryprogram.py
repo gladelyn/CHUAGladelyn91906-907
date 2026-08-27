@@ -66,17 +66,29 @@ class Teacher(User):
         User.__init__(self,name, email, password)
         self.teachercode = teachercode
 
-    def analyse_trends(self, student, reports):
+    def analyse_trends(self, students, reports):
         total_students = len(students)
         total_items = 0
+
         for student in students.values():
             total_items += len(student.inventory)
+
         total_reports = len(reports)
+        total_overdue = 0
+        for student in students.values():
+            for item in student.inventory:
+                try:
+                    due_date = datetime.strptime(item["Due Date"], "%d/%m/%Y")
+                    if due_date.date() < datetime.now().date():
+                        total_overdue +=1
+                except ValueError:
+                    continue 
 
         return {
             "Students":total_students,
             "Items":total_items,
-            "Reports":total_reports
+            "Reports":total_reports,
+            "Overdue":total_overdue
         }
 
 def load_students():
@@ -87,16 +99,16 @@ def load_students():
         for student_id, student_data in data.items():
             student = Student(
                 int(student_id),
+                student_data["Email"],
                 student_data["Name"],
                 student_data["Password"],
-                student_data["Email"]
             )
             student.inventory = student_data["Inventory"]
             students[int(student_id)] = student
         return students
     except FileNotFoundError:
         return {}
-def save_students(self.students):
+def save_students(students):
     data = {}
     for student_id, student in students.items():
         data[str(student_id)] = {
@@ -115,7 +127,7 @@ def load_reports():
     except FileNotFoundError:
         return []
 
-def save_reports():
+def save_reports(reports):
     with open("reports.json","w") as file:
         json.dump(reports, file, indent = 4)
 
@@ -213,7 +225,7 @@ class InventoryApp:
         pswdentry = Entry(self.main_frame, width = 30, show = "*")
         pswdentry.pack(pady =10)
         def login():
-            studennt_id = identry.get().strip()
+            student_id = identry.get().strip()
             password = pswdentry.get()
             #checking for empty fields
             if not student_id or not password:
@@ -319,7 +331,7 @@ class InventoryApp:
         Label(self.main_frame, text = f"Welcome, {student.name}", font = ("Garamond", 28, "bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 30)
         Label(self.main_frame, text = "Inventory Dashboard", font = ("Calibri",14),bg = "aliceblue").pack()
         stats_frame = Frame(self.main_frame, bg = "aliceblue")
-        statsframe.pack(pady = 30)
+        stats_frame.pack(pady = 30)
         self.create_stats_card(stats_frame,"📦", "Total Items", len(student.inventory) )
 
         #quick action buttons
@@ -499,7 +511,7 @@ class InventoryApp:
                     if notification.message == message:
                         notification_exists = True
                         break
-                if not notification_exits:
+                if not notification_exists:
                     notification = Notification(message, "Overdue")
                     student.add_notification(notification)
                     email_sent = send_email(student.email,"Inventory Management Alert",message)
