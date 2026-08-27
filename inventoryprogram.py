@@ -24,7 +24,7 @@ class InventoryItem:
 
     def check_overdue(self):
         try:
-            due_date = datetime.striptime(self.due_date,"%d/%m/%Y")
+            due_date = datetime.strptime(self.due_date,"%d/%m/%Y")
             if datetime.now() >due_date:
                 self.status = "Overdue"
                 return True
@@ -94,7 +94,7 @@ def load_students():
         return students
     except FileNotFoundError:
         return {}
-def save_students():
+def save_students(self.students):
     data = {}
     for student_id, student in students.items():
         data[str(student_id)] = {
@@ -170,6 +170,12 @@ class InventoryApp:
     def clear_footer(self):
         for widget in self.footer_frame.winfo_children():
             widget.destroy()
+
+    def create_button(self,parent, text, command, width = 20):
+        button = Button(parent, text= text, width = width, height =2, bg = "midnightblue",fg = "white",activebackground = "lightskyblue1",activeforeground = "midnightblue",command = command)
+        button.pack(side = LEFT, padx = 8)
+        return button
+    
 
     def show_login(self):
         self.clear_main_frame()
@@ -291,10 +297,10 @@ class InventoryApp:
         Label(self.main_frame, text = "Quick Actions",font = ("Garamond",20,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
-        Button(buttonframe,text = "📦 Manage Your Inventory", width = 25,height = 2, command = self.show_inventory).pack(side = LEFT, padx = 8)
-        Button(buttonframe, text = "🔔 Notifications", width = 25, height = 2, command = self.show_notifications).pack(side = LEFT,padx = 8)
-        Button(buttonframe, text = "🚨 Report an Incident",width = 25, height = 2, command = self.show_reports).pack(side = LEFT,padx = 8)
-        Button(buttonframe, text = "Logout", width = 25, height = 2, command = self.logout).pack(side = LEFT, padx = 8)
+        self.create_button(buttonframe,"📦 Manage Your Inventory", self.show_inventory,20)
+        self.create_button(buttonframe, "🔔 Notifications", self.show_notifications,20)
+        self.create_button(buttonframe, "🚨 Report an Incident", self.show_reports,20)
+        self.create_button(buttonframe,  "Logout",  self.logout,20)
 
     def show_inventory(self):
         self.clear_main_frame()
