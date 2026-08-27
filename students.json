@@ -3,6 +3,24 @@
         "Name": "Alex Lee",
         "Email": "alex@test.com",
         "Password": "dde8d6d051a1406148e30359698429cdf0e163c8e41c47b4ff55645aca5024e2",
-        "Inventory": []
+        "Inventory": [
+            {
+                "Name": "Basketball Gear",
+                "ID Number": "SPORTSGEAR",
+                "Due Date": "31/10/2026"
+            },
+            {
+                "Name": "Maths Textbook",
+                "ID Number": "111000",
+                "Due Date": "20/04/2026"
+            }
+        ],
+        "Notifications": [
+            {
+                "Message": "Your item 'Maths Textbook'is overdue.It was due on 20/04/2026.",
+                "Type": "Overdue",
+                "Read": false
+            }
+        ]
     }
 }

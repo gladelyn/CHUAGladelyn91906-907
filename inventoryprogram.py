@@ -90,6 +90,22 @@ class Teacher(User):
             "Reports":total_reports,
             "Overdue":total_overdue
         }
+#notifications class
+class Notification:
+    def __init__(self, message, notification_type):
+        self.message = message
+        self.notification_type = notification_type
+        self.read = False
+
+    def mark_as_read(self):
+        self.read = True
+
+    def to_dictionary(self):
+        return {
+            "Message":self.message,
+            "Type":self.notification_type,
+            "Read":self.read
+        }
 
 def load_students():
     try:
@@ -104,6 +120,14 @@ def load_students():
                 student_data["Password"],
             )
             student.inventory = student_data["Inventory"]
+            student.notifications = []
+            for notification_data in student_data.get("Notifications",[]):
+                notification = Notification(
+                    notification_data["Message"],
+                    notification_data["Type"]
+                )
+                notification.read = notification_data["Read"]
+                student.notifications.append(notification)
             students[int(student_id)] = student
         return students
     except FileNotFoundError:
@@ -115,7 +139,12 @@ def save_students(students):
             "Name":student.name,
             "Email":student.email,
             "Password":student.password,
-            "Inventory":student.inventory
+            "Inventory":student.inventory,
+            "Notifications": [
+                notification.to_dictionary()
+                for notification in student.notifications
+
+            ]
         }
     with open("students.json","w") as file:
         json.dump(data,file,indent = 4)
@@ -140,7 +169,7 @@ def send_email(recipient, subject, message):
         email["Subject"] = subject
         email["From"] = "YOUR_SYSTEM_EMAIL"
         email["To"] = recipient
-        email.sent_content(message)
+        email.set_content(message)
 
         #email server connection
         server = smtplib.SMTP("smtp.gmail.com",587)
@@ -149,22 +178,6 @@ def send_email(recipient, subject, message):
         return True
     except Exception:
         return False
-#notifications class
-class Notification:
-    def __init__(self, message, notification_type):
-        self.message = message
-        self.notification_type = notification_type
-        self.read = False
-
-    def mark_as_read(self):
-        self.read = True
-
-    def to_dictionary(self):
-        return {
-            "Message":self.message,
-            "Type":self.notification_type,
-            "Read":self.read
-        }
 
 #inventory main app class
 class InventoryApp:
@@ -219,37 +232,64 @@ class InventoryApp:
         self.clear_footer()
 
         Label(self.main_frame,text="LOGIN",font=("Garamond", 28, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=40)
-        Label(self.main_frame,text="Student ID",font=("Calibri", 12),bg="aliceblue").pack()
+
+        account_type = StringVar()
+        account_type.set("Student")
+        Label(self.main_frame, text = "Account Type", font = ("Calibri",12),bg = "aliceblue").pack()
+        Radiobutton(self.main_frame, text = "Student", variable = account_type, value = "Student", bg = "aliceblue").pack()
+        Radiobutton(self.main_frame, text = "Teacher",variable = account_type, value = "Teacher", bg = "aliceblue").pack()
+        Label(self.main_frame,text="Student ID/Teacher Code",font=("Calibri", 12),bg="aliceblue").pack()
         identry = Entry(self.main_frame, width = 30)
         identry.pack(pady = 10)
         Label(self.main_frame,text="Password",font=("Calibri", 12),bg="aliceblue").pack()
         pswdentry = Entry(self.main_frame, width = 30, show = "*")
         pswdentry.pack(pady =10)
         def login():
-            student_id = identry.get().strip()
+            login_id = identry.get().strip()
             password = pswdentry.get()
             #checking for empty fields
-            if not student_id or not password:
-                messagebox.showwarning("Missing Information","Please enter your Student ID and password.")
+            if not login_id or not password:
+                messagebox.showwarning("Missing Information","Please enter your Student ID/Teacher Code and password.")
                 return
-            #validating the student id
-            if not student_id.isdigit() or len(student_id) !=5:
-                messagebox.showerror("Invalid Student ID","Student ID must be 5 digits.")
-                return
-            student_id = int(student_id)
-            #checking whether ID has been signed up already
-            if student_id not in self.students:
-                messagebox.showerror("Login Failed","Student ID does not exist, please go to sign up")
-                return
-            student = self.students[student_id]
-            #checking the password against hashed password
-            if hash_pswd(password) != student.password:
-                messagebox.showerror("Login Failed","Incorrect Password. Please try again.")
-                return
-            #store the current student as object
-            self.current_student = student
-            #switch to dashboard/homepage
-            self.show_home()
+
+            #teacher login
+            if account_type.get() == "Teacher":
+                #validating teacher code is 3 letters
+                if len(login_id)!=3 or not login_id.isalpha():
+                    messagebox.showerror("Invalid Teacher Code","Teacher code must be 3 letters")
+                    return
+                login_id = login_id.upper()
+                if login_id not in self.teachers:
+                    messagebox.showerror("Login Failed", "Teacher code does not exist")
+                    return
+                teacher = self.teachers[login_id]
+                if hash_pswd(password)!= teacher.password:
+                    messagebox.showerror("Login Failed","Incorrect Password, please try again")
+                    return
+                self.current_teacher  = teacher
+                self.current_student = None
+                self.show_teacher_dashboard()
+            #student login
+            else:
+                #validating the student id
+                if not login_id.isdigit() or len(login_id) !=5:
+                    messagebox.showerror("Invalid Student ID","Student ID must be 5 digits.")
+                    return
+                student_id = int(login_id)
+                #checking whether ID has been signed up already
+                if student_id not in self.students:
+                    messagebox.showerror("Login Failed","Student ID does not exist, please go to sign up")
+                    return
+                student = self.students[student_id]
+                #checking the password against hashed password
+                if hash_pswd(password) != student.password:
+                    messagebox.showerror("Login Failed","Incorrect Password. Please try again.")
+                    return
+                #store the current student as object
+                self.current_student = student
+                self.current_teacher = None
+                #switch to dashboard/homepage
+                self.show_home()
 
         def clear_fields():
             identry.delete(0,END)
@@ -260,6 +300,7 @@ class InventoryApp:
         self.create_button(buttonframe, "Clear Fields",clear_fields,20)
         self.create_button(buttonframe,"Login",login,20)
         self.create_button(buttonframe,"Create Account",self.show_signup,20)
+        self.create_button(buttonframe, "Exit Program",self.exit_program,20)
 
         
         self.create_footer()
@@ -324,6 +365,49 @@ class InventoryApp:
 
         self.create_footer()
 
+    def show_reports(self):
+            self.clear_main_frame()
+            self.clear_footer()
+            student = self.current_student
+    
+            Label(self.main_frame, text = "Report an Incident",font = ("Garamond",28,"bold"),bg = "aliceblue", fg = "midnightblue").pack(pady = 30)
+            Label(self.main_frame, text = "Location",bg ="aliceblue").pack()
+            locentry = Entry(self.main_frame, width = 30)
+            locentry.pack(pady =10)
+            Label(self.main_frame, text = "Incident Type", bg = "aliceblue").pack()
+            incentry = Entry(self.main_frame, width = 30)
+            incentry.pack(pady = 10)
+    
+            def submit_report():
+                location = locentry.get().strip()
+                incident_type = incentry.get().strip()
+                #checking for empty fields
+                if not location or not incident_type:
+                    messagebox.showwarning("Missing Information","Please complete all fields.")
+                    return
+                #create a report dictionary
+                report = {
+                    "Location":location,
+                    "Type of Incident":incident_type,
+                    "Student ID":self.current_student.student_id
+                }
+                #add and save report
+                self.reports.append(report)
+                save_reports(self.reports)
+                messagebox.showinfo("Report Submitted","Your incident report has been submitted successfully.")
+                self.show_home()
+    
+            def clear_fields():
+                locentry.delete(0,END)
+                incentry.delete(0,END)
+    
+            buttonframe = Frame(self.main_frame, bg = "aliceblue")
+            buttonframe.pack(pady = 20)
+            self.create_button(buttonframe, "Clear Fields",clear_fields,20)
+            self.create_button(buttonframe, "Submit Report",submit_report,20)
+            self.create_button(buttonframe, "Return to Dashboard",self.show_home,20)
+    
+
     def show_home(self):
         self.clear_main_frame()
         self.clear_footer()
@@ -356,7 +440,8 @@ class InventoryApp:
         inventoryframe = Frame(self.main_frame, bg = "aliceblue")
         inventoryframe.pack(fill = BOTH, expand = True, padx = 50, pady = 20)
         Label(inventoryframe, text = "Item Name", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 0, padx = 20, pady = 10)
-        Label(inventoryframe, text = "ID Number", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 2, padx = 20, pady = 10)
+        Label(inventoryframe, text = "ID Number", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 1, padx = 20, pady = 10)
+        Label(inventoryframe, text = "Due Date", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0, column =2, padx = 20, pady = 10 )
         #displaying the items
         if len(student.inventory) ==0:
             Label(inventoryframe, text = "No items have been stored yet.",font = ("Calibri",12),bg = "aliceblue").grid(row = 1, column = 0, columnspan = 3, pady = 30)
@@ -369,50 +454,8 @@ class InventoryApp:
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
         self.create_button(buttonframe, "Add an Item", self.add_item)
-        self.create_button(self.main_frame,  "Remove an Item", self.delete_item)
+        self.create_button(buttonframe,  "Remove an Item", self.delete_item)
         self.create_button(buttonframe,"Return to Dashboard", self.show_home)
-
-    def show_reports(self):
-        self.clear_main_frame()
-        self.clear_footer()
-
-        Label(self.main_frame, text = "Report an Incident",font = ("Garamond",28,"bold"),bg = "aliceblue", fg = "midnightblue").pack(pady = 30)
-        Label(self.main_frame, text = "Location",bg ="aliceblue").pack()
-        locentry = Entry(self.main_frame, width = 30)
-        locentry.pack(pady =10)
-        Label(self.main_frame, text = "Incident Type", bg = "aliceblue").pack()
-        incentry = Entry(self.main_frame, width = 30)
-        incentry.pack(pady = 10)
-
-        def submit_report():
-            location = locentry.get().strip()
-            incident_type = incentry.get().strip()
-            #checking for empty fields
-            if not location or not incident_type:
-                messagebox.showwarning("Missing Information","Please complete all fields.")
-                return
-            #create a report dictionary
-            report = {
-                "Location":location,
-                "Type of Incident":incident_type,
-                "Student ID":self.current_student.student_id
-            }
-            #add and save report
-            self.reports.append(report)
-            save_reports(self.reports)
-            messagebox.showinfo("Report Submitted","Your incident report has been submitted successfully.")
-            self.show_home()
-
-        def clear_fields():
-            locentry.delete(0,END)
-            incentry.delete(0,END)
-
-        buttonframe = Frame(self.main_frame, bg = "aliceblue")
-        buttonframe.pack(pady = 20)
-        self.create_button(buttonframe, "Clear Fields",20)
-        self.create_button(buttonframe, "Submit Report",submit_report,20)
-        self.create_button(buttonframe, "Return to Dashboard",self.show_home,20)
-
 
     def add_item(self):
         #creating a new separate window to add items from
@@ -559,13 +602,14 @@ class InventoryApp:
                     notification = Notification(message, "Overdue")
                     student.add_notification(notification)
                     email_sent = send_email(student.email,"Inventory Management Alert",message)
+                    save_students(self.students)
 
     def show_teacher_dashboard(self):
         self.clear_main_frame()
         self.clear_footer()
 
         Label(self.main_frame, text = "Teacher Dashboard", font = ("Garamond",28,"bold"), bg = "aliceblue",fg = "midnightblue").pack(pady = 30)
-        teacher = self.current_user
+        teacher = self.current_teacher
         trends = teacher.analyse_trends(self.students, self.reports)
         Label(self.main_frame, text = f"Total Students: {trends["Students"]}",bg = "aliceblue").pack(pady = 10)
         Label(self.main_frame, text = f"Total Items: {trends["Items"]}",bg = "aliceblue").pack(pady = 10)
@@ -583,6 +627,13 @@ class InventoryApp:
     def logout(self):
         self.current_student = None
         self.show_login()
+
+    def exit_program(self):
+        answer = messagebox.askyesno("Exit Program","Are you sure you want to exit?")
+        if answer:
+            save_students(self.students)
+            save_reports(self.reports)
+            self.root.destroy()
 
     def create_footer(self):
         cards = [
@@ -645,4 +696,5 @@ class InventoryApp:
 #start the program
 root = Tk()
 app = InventoryApp(root)
+root.protocol("WM_DELETE_WINDOW",app.exit_program)
 root.mainloop()
