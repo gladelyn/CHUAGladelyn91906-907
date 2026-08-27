@@ -175,9 +175,10 @@ class InventoryApp:
         self.root.title("Inventory Management System")
         self.root.state("zoomed")
         self.root.configure(bg="aliceblue" )
-        #store and load current student data
+        #store and load current student or current teacher data
         self.students = load_students()
         self.current_student = None
+        self.current_teacher = None
         #loading reports
         self.reports = load_reports()
 
@@ -235,6 +236,7 @@ class InventoryApp:
             if not student_id.isdigit() or len(student_id) !=5:
                 messagebox.showerror("Invalid Student ID","Student ID must be 5 digits.")
                 return
+            student_id = int(student_id)
             #checking whether ID has been signed up already
             if student_id not in self.students:
                 messagebox.showerror("Login Failed","Student ID does not exist, please go to sign up")
@@ -267,7 +269,7 @@ class InventoryApp:
         self.clear_main_frame()
         self.clear_footer()
         Label(self.main_frame,text="CREATE ACCOUNT",font=("Garamond", 28, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=50)  
-        Label(self.main_frame, text = "Name", bg = "aliceblue").pack()
+        Label(self.main_frame, text = "Full Name", bg = "aliceblue").pack()
         nameentry = Entry(self.main_frame, width = 30)
         nameentry.pack(pady = 5)
         Label(self.main_frame, text = "Student ID",bg = "aliceblue").pack()
@@ -299,7 +301,7 @@ class InventoryApp:
                 messagebox.showerror("Account Already Exists","This Student ID is already registed.")
                 return
             #creating the student object after signup is verified
-            student = Student(student_id, name, email, hash_pswd(password))
+            student = Student(student_id,email, name,hash_pswd(password))
             #adding student to the dictionary and saving as current student
             self.students[student_id] = student
             save_students(self.students)
@@ -332,16 +334,16 @@ class InventoryApp:
         Label(self.main_frame, text = "Inventory Dashboard", font = ("Calibri",14),bg = "aliceblue").pack()
         stats_frame = Frame(self.main_frame, bg = "aliceblue")
         stats_frame.pack(pady = 30)
-        self.create_stats_card(stats_frame,"📦", "Total Items", len(student.inventory) )
+        self.create_stat_card(stats_frame,"📦", "Total Items", len(student.inventory) )
 
         #quick action buttons
         Label(self.main_frame, text = "Quick Actions",font = ("Garamond",20,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
-        self.create_button(buttonframe,"📦 Manage Your Inventory", self.show_inventory,20)
-        self.create_button(buttonframe, "🔔 Notifications", self.show_notifications,20)
-        self.create_button(buttonframe, "🚨 Report an Incident", self.show_reports,20)
-        self.create_button(buttonframe,  "Logout",  self.logout,20)
+        Button(buttonframe,text ="📦 Manage Your Inventory", command = self.show_inventory,width =20, bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side = LEFT, padx = 8)
+        Button(buttonframe,text =  "🔔 Notifications", command = self.show_notifications,width =20,bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side = LEFT, padx = 8)
+        Button(buttonframe, text ="🚨 Report an Incident", command = self.show_reports,width =20,bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side = LEFT, padx = 8)
+        Button(buttonframe, text = "Logout", command = self.logout,width =20,bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side =LEFT, padx = 8)
 
     def show_inventory(self):
         self.clear_main_frame()
@@ -369,6 +371,48 @@ class InventoryApp:
         self.create_button(buttonframe, "Add an Item", self.add_item)
         self.create_button(self.main_frame,  "Remove an Item", self.delete_item)
         self.create_button(buttonframe,"Return to Dashboard", self.show_home)
+
+    def show_reports(self):
+        self.clear_main_frame()
+        self.clear_footer()
+
+        Label(self.main_frame, text = "Report an Incident",font = ("Garamond",28,"bold"),bg = "aliceblue", fg = "midnightblue").pack(pady = 30)
+        Label(self.main_frame, text = "Location",bg ="aliceblue").pack()
+        locentry = Entry(self.main_frame, width = 30)
+        locentry.pack(pady =10)
+        Label(self.main_frame, text = "Incident Type", bg = "aliceblue").pack()
+        incentry = Entry(self.main_frame, width = 30)
+        incentry.pack(pady = 10)
+
+        def submit_report():
+            location = locentry.get().strip()
+            incident_type = incentry.get().strip()
+            #checking for empty fields
+            if not location or not incident_type:
+                messagebox.showwarning("Missing Information","Please complete all fields.")
+                return
+            #create a report dictionary
+            report = {
+                "Location":location,
+                "Type of Incident":incident_type,
+                "Student ID":self.current_student.student_id
+            }
+            #add and save report
+            self.reports.append(report)
+            save_reports(self.reports)
+            messagebox.showinfo("Report Submitted","Your incident report has been submitted successfully.")
+            self.show_home()
+
+        def clear_fields():
+            locentry.delete(0,END)
+            incentry.delete(0,END)
+
+        buttonframe = Frame(self.main_frame, bg = "aliceblue")
+        buttonframe.pack(pady = 20)
+        self.create_button(buttonframe, "Clear Fields",20)
+        self.create_button(buttonframe, "Submit Report",submit_report,20)
+        self.create_button(buttonframe, "Return to Dashboard",self.show_home,20)
+
 
     def add_item(self):
         #creating a new separate window to add items from
