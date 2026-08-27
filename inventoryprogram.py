@@ -5,6 +5,8 @@ from tkinter import messagebox
 from tkinter import PhotoImage
 from PIL import Image, ImageTk
 from datetime import datetime
+import smtplib
+from email.message import EmailMessage
 import json
 import hashlib
 
@@ -120,6 +122,21 @@ def save_reports():
 def hash_pswd(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+def send_email(recipient, subject, message):
+    try:
+        email = EmailMessage()
+        email["Subject"] = subject
+        email["From"] = "YOUR_SYSTEM_EMAIL"
+        email["To"] = recipient
+        email.sent_content(message)
+
+        #email server connection
+        server = smtplib.SMTP("smtp.gmail.com",587)
+        server.send_message(email)
+        server.quit()
+        return True
+    except Exception:
+        return False
 #notifications class
 class Notification:
     def __init__(self, message, notification_type):
@@ -459,7 +476,7 @@ class InventoryApp:
             for notification in self.current_student.notifications:
                 if not notification.read:
                     Label(self.main_frame, text = f"⚠ {notification.message}",bg = "white",width = 60, pady = 10).pack(pady = 5)
-                    
+
 
         Button(self.main_frame, text = "Return to Dashboard", command = self.show_home).pack(pady = 20)
 
@@ -485,6 +502,7 @@ class InventoryApp:
                 if not notification_exits:
                     notification = Notification(message, "Overdue")
                     student.add_notification(notification)
+                    email_sent = send_email(student.email,"Inventory Management Alert",message)
 
     def show_teacher_dashboard(self):
         self.clear_main_frame()
