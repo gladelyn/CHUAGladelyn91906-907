@@ -132,6 +132,35 @@ def load_students():
         return students
     except FileNotFoundError:
         return {}
+
+def load_teachers():
+    try:
+        with open("teachers.json","r") as file:
+            data = json.load(file)
+        teachers = {}
+        for teacher_code, teacher_data in data.items():
+            teacher = Teacher(
+                teacher_code,
+                teacher_data["Name"],
+                teacher_data["Email"],
+                teacher_data["Password"]
+            )
+            teachers[teacher_code] = teacher
+        return teachers
+    except FileNotFoundError
+    return {}
+
+def save_teachers(teachers):
+    data = {}
+    for teacher_code, teacher in teachers.items():
+        data[teacher_code] = {
+            "Name": teacher.name,
+            "Email": teacher.email,
+            "Password": teacher.password
+        }
+    with open("teachers.json","w") as file:
+        json.dump(data, file, indent = 4)
+
 def save_students(students):
     data = {}
     for student_id, student in students.items():
@@ -191,6 +220,7 @@ class InventoryApp:
         #store and load current student or current teacher data
         self.students = load_students()
         self.current_student = None
+        self.teachers = load_teachers()
         self.current_teacher = None
         #loading reports
         self.reports = load_reports()
@@ -225,7 +255,8 @@ class InventoryApp:
         button = Button(parent, text= text, width = width, height =2, bg = "midnightblue",fg = "white",activebackground = "lightskyblue1",activeforeground = "midnightblue",command = command)
         button.pack(side = LEFT, padx = 8)
         return button
-    
+
+
 
     def show_login(self):
         self.clear_main_frame()
@@ -614,6 +645,11 @@ class InventoryApp:
         Label(self.main_frame, text = f"Total Students: {trends["Students"]}",bg = "aliceblue").pack(pady = 10)
         Label(self.main_frame, text = f"Total Items: {trends["Items"]}",bg = "aliceblue").pack(pady = 10)
         Label(self.main_frame, text = f"Incident Reports: {trends["Reports"]}",bg = "aliceblue").pack(pady = 10)
+        Label(self.main_frame,text = f"Overdue Items: {trends["Overdue"]}",bg = "aliceblue").pack(pady =10)
+
+        buttonframe = Frame(self.main_frame, bg = "aliceblue")
+        buttonframe.pack(pady =20)
+        self.create_button(buttonframe, "Logout",self.logout,20)
         
 
     def create_stat_card(self, parent, icon, title, value):
@@ -626,6 +662,7 @@ class InventoryApp:
 
     def logout(self):
         self.current_student = None
+        self.current_teacer = None
         self.show_login()
 
     def exit_program(self):
