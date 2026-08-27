@@ -64,6 +64,19 @@ class Teacher(User):
         User.__init__(self,name, email, password)
         self.teachercode = teachercode
 
+    def analyse_trends(self, student, reports):
+        total_students = len(students)
+        total_items = 0
+        for student in students.values():
+            total_items += len(student.inventory)
+        total_reports = len(reports)
+
+        return {
+            "Students":total_students,
+            "Items":total_items,
+            "Reports":total_reports
+        }
+
 def load_students():
     try:
         with open('students.json','r') as file:
@@ -392,6 +405,18 @@ class InventoryApp:
                 Label(self.main_frame, text = notification.message, bg = "white",width = 60, pady=10).pack(pady = 5)
 
         Button(self.main_frame, text = "Return to Dashboard", command = self.show_home).pack(pady = 20)
+
+    def show_teacher_dashboard(self):
+        self.clear_main_frame()
+        self.clear_footer()
+
+        Label(self.main_frame, text = "Teacher Dashboard", font = ("Garamond",28,"bold"), bg = "aliceblue",fg = "midnightblue").pack(pady = 30)
+        teacher = self.current_user
+        trends = teacher.analyse_trends(self.students, self.reports)
+        Label(self.main_frame, text = f"Total Students: {trends["Students"]}",bg = "aliceblue").pack(pady = 10)
+        Label(self.main_frame, text = f"Total Items: {trends["Items"]}",bg = "aliceblue").pack(pady = 10)
+        Label(self.main_frame, text = f"Incident Reports: {trends["Reports"]}",bg = "aliceblue").pack(pady = 10)
+        
 
     def create_stat_card(self, parent, icon, title, value):
         card = Frame(parent, bg = "white", bd = 1, relief = "solid",width = 220, height = 130)
