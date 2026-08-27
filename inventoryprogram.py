@@ -348,6 +348,17 @@ class InventoryApp:
             if not item_name or not item_id or not due_date:
                 messagebox.showwarning("Missing Informaiton","Please complete all fields.")
                 return
+            #checking for valid date time
+            try:
+                valid_date = datetime.strptime(due_date,"%d,%m,%Y")
+            except ValueError:
+                messagebox.showerror("Invalid Date","Please enter a valid date in DD/MM/YYYY format.")
+                return
+            #checking that the date has not already passed
+            if valid_date.date()<datetime.now().date():
+                messagebox.showerror("Invalid Date","The due date cannot be in the past.")
+                return
+            
             #creating an item dictionary to store it as a set
             item = {
                 "Name":item_name,
