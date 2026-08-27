@@ -93,6 +93,17 @@ def save_students():
     with open("students.json","w") as file:
         json.dump(data,file,indent = 4)
 
+def load_reports():
+    try:
+        with open("reports.json","r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
+
+def save_reports():
+    with open("reports.json","w") as file:
+        json.dump(reports, file, indent = 4)
+
 def hash_pswd(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -118,6 +129,8 @@ class InventoryApp:
         #store and load current student data
         self.students = load_students()
         self.current_student = None
+        #loading reports
+        self.reports = load_reports()
 
         #title frame
         self.title_frame = Frame(self.root,bg="midnightblue",height=80)
