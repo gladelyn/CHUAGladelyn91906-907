@@ -15,7 +15,7 @@ class InventoryItem:
         self.name = name
         self.item_id = item_id
         self.due_date = due_date
-        self.status = "Borrowed"
+        self.status = "Stored"
 
     #changing the item's status when it has been reported as missing
     def mark_as_missing(self):
@@ -624,7 +624,8 @@ class InventoryApp:
             item = {
                 "Name":item_name,
                 "ID Number":item_id,
-                "Due Date": due_date
+                "Due Date": due_date,
+                "Status":"Stored"
             }
             #adding item to current student's inventory list then saving
             self.current_student.add_item(item)
@@ -717,6 +718,8 @@ class InventoryApp:
                 continue
             #compare the item's due date to today's date
             if due_date.date() < datetime.now().date():
+                #update the item's status when its due date has passed
+                item["Status"] = "Overdue"
                 #create a message containing the item's name and due date
                 message = (
                     f"Your item '{item["Name"]}'"
