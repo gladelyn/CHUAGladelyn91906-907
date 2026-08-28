@@ -856,14 +856,16 @@ class InventoryApp:
         #this turns collected data into useful information that the teacher can use to take appropriate action
         if trends["Overdue"]>0:
             action = (
-                "Consider reminding students about due dates and review the returning process"
+                f"There are {trends["Overdue"]} overdue items. Consider reminding students about upcoming due dates and review the returning process."
             )
         #if there are many incident reports, recommend investigating the locations where they occur
         elif trends["Reports"]>=5:
-            action=("Consider reviewing the areas where incidents are occurring most frequently.")
+            action=(
+                f"There have been {trends["Reports"]} incident reports. Consider reviewing {trends["Common Location"]} to identify possible causes."
+            )
         #else, display a general message when there are only a few issues requiring teacher attention
         else:
-            action = ("Inventory records are currently showing very few issues to discuss.")
+            action = ("Inventory records are currently showing very few issues. Continue monitoring inventory and incident reports.")
 
         Label(self.main_frame, text = "Recommended Action", font = ("Garamond",18,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
         Label(self.main_frame,text = action, wraplength = 700, bg = "white", padx = 20, pady = 15).pack()
