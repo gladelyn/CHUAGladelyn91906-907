@@ -320,6 +320,14 @@ class InventoryApp:
     #creates a reusable button design so buttons across the program have a consistent appearance
     def create_button(self,parent, text, command, width = 20):
         button = Button(parent, text= text, width = width, height =2, bg = "midnightblue",fg = "white",activebackground = "lightskyblue1",activeforeground = "midnightblue",command = command)
+        #change button appearance when the mouse hovers
+        def button_enter(event):
+            event.widget.configure(bg = "lightskyblue1",fg = "midnightblue")
+        #return the button to original appearance
+        def button_leave(event):
+            event.widget.configure(bg = "midnightblue",fg = "white")
+        button.bind("<Enter>",button_enter)
+        button.bind("<Leave>",button_leave)
         button.pack(side = LEFT, padx = 8)
         return button
 
