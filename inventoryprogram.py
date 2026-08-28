@@ -558,7 +558,7 @@ class InventoryApp:
         #search and filter controls to easily navigate inventory
         search_frame = Frame(self.main_frame, bg ="aliceble")
         search_frame.pack(pady = 15)
-        Label(search_frame, text = "Search:", bg ="aliceblue").pack(side = LEFT, padx = 5)
+        Label(search_frame, text = "Search Inventory:", bg ="aliceblue").pack(side = LEFT, padx = 5)
         searchentry = Entry(search_frame, width = 25)
         searchentry.pack(side = LEFT, padx = 5)
         Label(search_frame, text = "Status", bg = "aliceblue").pack(side = LEFT, padx = 5)
@@ -615,27 +615,27 @@ class InventoryApp:
                 Label(inventoryframe, text = "No matching items found.",font = ("Calibri",12), bg = "aliceblue").grid(row = 1,column = 0, columnspan = 4,pady = 30)
             else:
                 #display each matching item
-                for index, item, in enumerate(displayed_items):
+                for index, item in enumerate(displayed_items):
                     Label(inventoryframe, text = item["Name"],bg = "white",width = 20).grid(row = index+1, column = 0, padx = 10, pady = 5)
                     Label(inventoryframe, text = item["ID Number"],bg = "white",width = 20).grid(row = index+1, column = 1, padx = 10, pady = 5)
                     Label(inventoryframe, text = item["Due Date"], bg = "white",width = 20).grid(row = index+1, column = 2, padx = 10, pady = 5)
                     Label(inventoryframe, text = item.get("Status","Stored"),bg = "white",width = 20).grid(row = index+1, column = 3, padx = 10, pady =5)
 
-            #update the inventory whenever the search text changes
-            search_entry.bind("<KeyRelease>",lambda event:display_inventory())
-            #update the inventory whenever status filter changes
-            status_filter.trace_add(
-                "write",lambda *args: display_inventory()
-            )
+        #update the inventory whenever the search text changes
+        searchentry.bind("<KeyRelease>",lambda event:display_inventory())
+        #update the inventory whenever status filter changes
+        status_filter.trace_add(
+            "write",lambda *args: display_inventory()
+        )
 
-            #display inventory when the page first opens
-            display_inventory()
-            #inventory action buttons
-            buttonframe = Frame(self.main_frame, bg = "aliceblue")
-            buttonframe.pack(pady = 20)
-            self.create_button(buttonframe, "Add an Item", self.add_item)
-            self.create_button(buttonframe,  "Remove an Item", self.delete_item)
-            self.create_button(buttonframe,"Return to Dashboard", self.show_home)
+        #display inventory when the page first opens
+        display_inventory()
+        #inventory action buttons
+        buttonframe = Frame(self.main_frame, bg = "aliceblue")
+        buttonframe.pack(pady = 20)
+        self.create_button(buttonframe, "Add an Item", self.add_item)
+        self.create_button(buttonframe,  "Remove an Item", self.delete_item)
+        self.create_button(buttonframe,"Return to Dashboard", self.show_home)
        
 
     #open a pop-up window so the student can enter an inventory item
@@ -759,13 +759,38 @@ class InventoryApp:
         self.clear_footer()
 
         Label(self.main_frame, text = "Notifications",font = ("Garamond",28,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady =30)
+
+        #count the number of unread notifications
+        unread_count = 0
+        for notification in self.current_student.notifications:
+            if not notification.read:
+                unread_count +=1
+        Label(self.main_frame, text = f"You have {unread_count} unread notification(s).", bg = "aliceblue",font = ("Calibri",12)).pack(pady = 5)
         if len(self.current_student.notifications) == 0:
             Label(self.main_frame, text = "You have no new notifications.", bg = "aliceblue").pack(pady=20)
         else:
             #only display the unread notifications to the student
             for notification in self.current_student.notifications:
+                notification_frame = Frame(self.main_frame, bg ="white",bd = 1,relief = "solid")
+                notification_frame.pack(pady = 5, padx = 100, fill = X)
+                #display the notification message
+                Label(
+                    notification_frame, text = f"⚠ {notification.message}", bg = "white", wraplength = 600).pack(side = LEFT, padx = 15, pady = 15)
+                #only show the button for unread notifications
                 if not notification.read:
-                    Label(self.main_frame, text = f"⚠ {notification.message}",bg = "white",width = 60, pady = 10).pack(pady = 5)
+                    def mark_read(n = notification):
+                        #mark the selected notification as read
+                        n.mark_as_read()
+                        #save updated notification status
+                        save_students(self.students)
+                        #refresh notification page
+                        self.show_notifications()
+
+                    Button(notification_frame, text = "Mark as Read",command = mark_read).pack(side = RIGHT, padx = 15)
+                else:
+                    Label(notification_frame, text = "✓ Read",bg = "white").pack(side = RIGHT, padx = 15)
+
+        Button(self.main_frame, text = "Return to Dashboard",command = self.show_home).pack(pady = 20)
 
 
         Button(self.main_frame, text = "Return to Dashboard", command = self.show_home).pack(pady = 20)
