@@ -898,7 +898,7 @@ class InventoryApp:
     #clearing the current user and return to login page
     def logout(self):
         self.current_student = None
-        self.current_teacer = None
+        self.current_teacher = None
         self.show_login()
 
     #asking user for confirmation before fully closing program
