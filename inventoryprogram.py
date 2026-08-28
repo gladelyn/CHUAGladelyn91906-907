@@ -555,26 +555,88 @@ class InventoryApp:
         Label(self.main_frame, text = "My Inventory", font = ("Garamond",28,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady =25)
         Label(self.main_frame, text = f"{student.name}'s stored items",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
 
+        #search and filter controls to easily navigate inventory
+        search_frame = Frame(self.main_frame, bg ="aliceble")
+        search_frame.pack(pady = 15)
+        Label(search_frame, text = "Search:", bg ="aliceblue").pack(side = LEFT, padx = 5)
+        searchentry = Entry(search_frame, width = 25)
+        searchentry.pack(side = LEFT, padx = 5)
+        Label(search_frame, text = "Status", bg = "aliceblue").pack(side = LEFT, padx = 5)
+
+        #variable to store selected filter
+        status_filter = StringVar()
+        status_filter.set("All")
+        status_options = [
+            "All",
+            "Stored",
+            "Overdue",
+            "Missing",
+            "Returned"
+        ]
+        OptionMenu(search_frame, status_filter, *status_options).pack(side = LEFT, padx = 5)
+
+        #a frame where the inventory items will be displayed
         inventoryframe = Frame(self.main_frame, bg = "aliceblue")
         inventoryframe.pack(fill = BOTH, expand = True, padx = 50, pady = 20)
-        Label(inventoryframe, text = "Item Name", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 0, padx = 20, pady = 10)
-        Label(inventoryframe, text = "ID Number", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 1, padx = 20, pady = 10)
-        Label(inventoryframe, text = "Due Date", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0, column =2, padx = 20, pady = 10 )
-        #displaying the items
-        if len(student.inventory) ==0:
-            Label(inventoryframe, text = "No items have been stored yet.",font = ("Calibri",12),bg = "aliceblue").grid(row = 1, column = 0, columnspan = 3, pady = 30)
-        #else, loop through inventory list and display each item's details
-        else:
-            for index, item in enumerate(student.inventory):
-                Label(inventoryframe, text = item["Name"],bg = "white",width =20).grid(row = index + 1, column = 0, padx = 10, pady = 5)
-                Label(inventoryframe, text = item["ID Number"],bg = "white", width = 20).grid(row = index +1, column = 1, padx = 10, pady = 5)
-                Label(inventoryframe, text = item["Due Date"], bg = "white",width = 20).grid(row = index +1, column = 2, padx = 10, pady = 5)
 
-        buttonframe = Frame(self.main_frame, bg = "aliceblue")
-        buttonframe.pack(pady = 20)
-        self.create_button(buttonframe, "Add an Item", self.add_item)
-        self.create_button(buttonframe,  "Remove an Item", self.delete_item)
-        self.create_button(buttonframe,"Return to Dashboard", self.show_home)
+        def display_inventory():
+            #clearing the previous inventory display
+            for widget in inventoryframe.winfo_children():
+                widget.destroy()
+            #get the user's search input
+            search_text = searchentry.get().strip().lower()
+            #get the user's selected status filter
+            selected_status = status_filter.get()
+            #table headings
+            Label(inventoryframe, text = "Item Name", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 0,padx =20,pady = 10)
+            Label(inventoryframe, text = "ID Number",font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row =0, column = 1, padx =20, pady = 10)
+            Label(inventoryframe, text = "Due Date", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 2, padx = 20, pady = 10)
+            Label(inventoryframe, text = "Status", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column =3, padx =20, pady =10)
+
+            displayed_items = []
+
+            #check every item against the search and filter
+            for item in student.inventory:
+                item_name = item["Name"].lower()
+                item_status = item.get("Status", "Stored")
+                #check whether item matches the search
+                matches_search = (
+                    search_text in item_name or search_text in item["ID Number"].lower()
+                )
+                #check whether the item matches selected status
+                matches_status = (
+                    selected_status == "All" or item_status == selected_status
+                )
+                if matches_search and matches_status:
+                    displayed_items.append(item)
+
+            #display a message if there are no matching items
+            if len(displayed_items) == 0:
+                Label(inventoryframe, text = "No matching items found.",font = ("Calibri",12), bg = "aliceblue").grid(row = 1,column = 0, columnspan = 4,pady = 30)
+            else:
+                #display each matching item
+                for index, item, in enumerate(displayed_items):
+                    Label(inventoryframe, text = item["Name"],bg = "white",width = 20).grid(row = index+1, column = 0, padx = 10, pady = 5)
+                    Label(inventoryframe, text = item["ID Number"],bg = "white",width = 20).grid(row = index+1, column = 1, padx = 10, pady = 5)
+                    Label(inventoryframe, text = item["Due Date"], bg = "white",width = 20).grid(row = index+1, column = 2, padx = 10, pady = 5)
+                    Label(inventoryframe, text = item.get("Status","Stored"),bg = "white",width = 20).grid(row = index+1, column = 3, padx = 10, pady =5)
+
+            #update the inventory whenever the search text changes
+            search_entry.bind("<KeyRelease>",lambda event:display_inventory())
+            #update the inventory whenever status filter changes
+            status_filter.trace_add(
+                "write",lambda *args: display_inventory()
+            )
+
+            #display inventory when the page first opens
+            display_inventory()
+            #inventory action buttons
+            buttonframe = Frame(self.main_frame, bg = "aliceblue")
+            buttonframe.pack(pady = 20)
+            self.create_button(buttonframe, "Add an Item", self.add_item)
+            self.create_button(buttonframe,  "Remove an Item", self.delete_item)
+            self.create_button(buttonframe,"Return to Dashboard", self.show_home)
+       
 
     #open a pop-up window so the student can enter an inventory item
     def add_item(self):
