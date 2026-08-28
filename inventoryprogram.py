@@ -842,12 +842,13 @@ class InventoryApp:
         #analyse the current student and incident report data
         teacher = self.current_teacher
         trends = teacher.analyse_trends(self.students, self.reports)
-        #display the calculated statistics so teacher can see the patterns
-        Label(self.main_frame, text = "Inventory Insights",font = ("Garamond",20,"bold"),bg ="aliceblue",fg = "midnightblue").pack(pady=20)
-        Label(self.main_frame, text = f"Total Students: {trends["Students"]}",bg = "aliceblue").pack(pady = 10)
-        Label(self.main_frame, text = f"Total Items: {trends["Items"]}",bg = "aliceblue").pack(pady = 10)
-        Label(self.main_frame, text = f"Incident Reports: {trends["Reports"]}",bg = "aliceblue").pack(pady = 10)
-        Label(self.main_frame,text = f"Overdue Items: {trends["Overdue"]}",bg = "aliceblue").pack(pady =10)
+        #display the calculated statistics as visual cards so teacher can see the patterns
+        stats_frame = Frame(self.main_frame, bg = "aliceblue")
+        stats_frame.pack(pady = 20)
+        self.create_stat_card(stats_frame,"👥","Students", trends ["Students"] )
+        self.create_stat_card(stats_frame,"📦","Items",trends["Items"] )
+        self.create_stat_card(stats_frame,"🚨","Incidents",trends["Reports"])
+        self.create_stat_card(stats_frame, "⚠️","Overdue",trends["Overdue"])
         Label(self.main_frame, text = f"Most Common Incident: {trends["Common Incident"]}",bg = "aliceblue").pack(pady = 5)
         Label(self.main_frame, text = f"Most Common Location: {trends["Common Location"]}",bg = "aliceblue").pack(pady = 5)
 
