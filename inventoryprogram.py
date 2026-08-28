@@ -478,6 +478,7 @@ class InventoryApp:
     def show_reports(self):
             self.clear_main_frame()
             self.clear_footer()
+            self.create_navigation_footer()
             student = self.current_student
     
             Label(self.main_frame, text = "Report an Incident",font = ("Garamond",28,"bold"),bg = "aliceblue", fg = "midnightblue").pack(pady = 30)
@@ -527,6 +528,7 @@ class InventoryApp:
     def show_home(self):
         self.clear_main_frame()
         self.clear_footer()
+        self.create_navigation_footer()
         #check for newly overdue items whenever the dashboard opens
         self.check_notifications()
         student = self.current_student
@@ -556,6 +558,7 @@ class InventoryApp:
     def show_inventory(self):
         self.clear_main_frame()
         self.clear_footer()
+        self.create_navigation_footer()
         student = self.current_student
 
         Label(self.main_frame, text = "My Inventory", font = ("Garamond",28,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady =25)
@@ -763,6 +766,7 @@ class InventoryApp:
     def show_notifications(self):
         self.clear_main_frame()
         self.clear_footer()
+        self.create_navigation_footer()
 
         Label(self.main_frame, text = "Notifications",font = ("Garamond",28,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady =30)
 
@@ -898,6 +902,19 @@ class InventoryApp:
             save_reports(self.reports)
             #close the application window
             self.root.destroy()
+
+    def create_navigation_footer(self):
+        #create navigation buttons to display on dashboards and other pages
+        buttons = [
+            ("🏠 Dashboard", self.show_home),
+            ("📦 My Inventory",self.show_inventory),
+            ("🔔 Notifications", self.show_notifications),
+            ("🚨 Report", self.show_reports),
+            ("↪ Logout", self.logout)
+        ]
+        for text, command in buttons:
+            button = Button(self.footer_frame, text = text, bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",width = 18,height =2, command = command)
+            button.pack(side = LEFT, expand = True, padx = 5, pady = 5)
 
     #create reusable information cards for login/signup pages
     #these introduce the main features of the system
