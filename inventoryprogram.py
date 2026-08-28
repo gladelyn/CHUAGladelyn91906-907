@@ -1,4 +1,4 @@
-#Inventory Program Version 3 (GUI transition)
+#Inventory Program Version 4 (GUI + Aesthetic and Interactive Features)
 #import libraries 
 from tkinter import* #GUI
 from tkinter import messagebox #GUI
