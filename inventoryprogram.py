@@ -1,16 +1,15 @@
 #Inventory Program Version 3 (GUI transition)
-#import libraries
-from tkinter import*
-from tkinter import messagebox
-from tkinter import PhotoImage
-from PIL import Image, ImageTk
-from datetime import datetime
-import smtplib
-from email.message import EmailMessage
-import json
-import hashlib
+#import libraries 
+from tkinter import* #GUI
+from tkinter import messagebox #GUI
+from datetime import datetime #date validation
+import smtplib #email notifications
+from email.message import EmailMessage #email notifications
+import json #JSON file storage
+import hashlib #password encryption
 
-#inventory items class
+#inventory items class (storing information about items stored by students)
+#contains methods allowing their inventory to be edited
 class InventoryItem:
     def __init__(self, name, item_id, due_date):
         self.name = name
@@ -18,12 +17,15 @@ class InventoryItem:
         self.due_date = due_date
         self.status = "Borrowed"
 
+    #changing the item's status when it has been reported as missing
     def mark_as_missing(self):
         self.status = "Missing"
 
+    #changing the item's status when it has been returned
     def mark_as_returned(self):
         self.status = "Returned"
 
+    #checking whether the item's due date has passed
     def check_overdue(self):
         try:
             due_date = datetime.strptime(self.due_date,"%d/%m/%Y")
@@ -31,6 +33,7 @@ class InventoryItem:
                 self.status = "Overdue"
                 return True
         except ValueError:
+            #returning as false if the date is not stored in the valid format
             return False
         return False
 
@@ -42,7 +45,8 @@ class User:
         self.email = email
         self.password = password
 
-#student class
+#student class (inherits attributes from the user class)
+#their specific attributes include student ID, inventory, notifications
 class Student(User):
     def __init__(self, student_id, email, name, password):
         User.__init__(self,name,email,password)
@@ -50,30 +54,39 @@ class Student(User):
         self.inventory = []
         self.notifications = []
 
+    #adding a new item to inventory
     def add_item(self, item):
         self.inventory.append(item)
 
+    #removing an item from the inventory using its list index
     def delete_item(self, index):
         if 0<= index <len(self.inventory):
             return self.inventory.pop(index)
         return None
 
+    #adding a new notification to the student's notification list
     def add_notification(self, notification):
         self.notifications.append(notification)
 
+#teacher class inherits the attributes from the User class
+#teachers will have access to system wide information and trends analysis
 class Teacher(User):
     def __init__(self, teachercode, name, email, password):
         User.__init__(self,name, email, password)
         self.teachercode = teachercode
-
+        
+    #function to analyse information across all registered students to provide useful statistics
     def analyse_trends(self, students, reports):
+        #counting the total number of registered students
         total_students = len(students)
+        #counting the total number of inventory items logged
         total_items = 0
 
         for student in students.values():
             total_items += len(student.inventory)
-
+        #counting the total number of incident reports submitted
         total_reports = len(reports)
+        #counting the number of overdue items
         total_overdue = 0
         for student in students.values():
             for item in student.inventory:
@@ -82,16 +95,20 @@ class Teacher(User):
                     if due_date.date() < datetime.now().date():
                         total_overdue +=1
                 except ValueError:
+                    #ignoring items whose due date is invalid
                     continue 
         #find the most common incident type
         incident_types = {}
         for report in reports:
             incident_type = report["Type of Incident"]
+            #increasing the count when this incident type exists
             if incident_type in incident_types:
                 incident_types[incident_type]+=1
+            #otherwise, a new entry for the incident type is created
             else:
                 incident_types[incident_type] =1
 
+        #finding the incident type with the highest number of reports
         most_common_incident = "None"
         if incident_types:
             most_common_incident = max(incident_types, key = incident_types.get)
@@ -105,11 +122,12 @@ class Teacher(User):
             else:
                 locations[location] = 1
 
+        #finds the location with the highest number of incidents
         most_common_location = "None"
         if locations:
             most_common_location = max(locations, key = locations.get)
 
-
+        #returns all calculated statistics to be displayed on the teacher dashboard
         return {
             "Students":total_students,
             "Items":total_items,
@@ -118,28 +136,30 @@ class Teacher(User):
             "Common Incident": most_common_incident,
             "Common Location": most_common_location
         }
-#notifications class
+#notifications class stores messages that will be displayed to students
 class Notification:
     def __init__(self, message, notification_type):
         self.message = message
         self.notification_type = notification_type
         self.read = False
 
+    #marking a notification as read
     def mark_as_read(self):
         self.read = True
-
+    #converting the notification object into a dictionary so it can be stored on JSON file
     def to_dictionary(self):
         return {
             "Message":self.message,
             "Type":self.notification_type,
             "Read":self.read
         }
-
+#loading students information to students.json file
 def load_students():
     try:
         with open('students.json','r') as file:
             data = json.load(file)
         students = {}
+        #recreate Student objects from the data stored in JSON
         for student_id, student_data in data.items():
             student = Student(
                 int(student_id),
@@ -147,7 +167,9 @@ def load_students():
                 student_data["Name"],
                 student_data["Password"],
             )
+            #restore the student's inventory
             student.inventory = student_data["Inventory"]
+            #restore previously saved notifications
             student.notifications = []
             for notification_data in student_data.get("Notifications",[]):
                 notification = Notification(
@@ -158,14 +180,17 @@ def load_students():
                 student.notifications.append(notification)
             students[int(student_id)] = student
         return students
+    #if the JSON file doesn't exist, start with an empty dictionary
     except FileNotFoundError:
         return {}
-
+#loading teachers on a separate teachers.json file 
+#teacher accounts are controlled by the school rather than being created through the signup page
 def load_teachers():
     try:
         with open("teachers.json","r") as file:
             data = json.load(file)
         teachers = {}
+        #recreates Teacher objects using information stored in JSON
         for teacher_code, teacher_data in data.items():
             teacher = Teacher(
                 teacher_code,
@@ -175,9 +200,10 @@ def load_teachers():
             )
             teachers[teacher_code] = teacher
         return teachers
+    #if no teacher files exists, start with no registered teachers
     except FileNotFoundError:
         return {}
-
+#convert teacher objects into dictionaries so it can be saved on JSON
 def save_teachers(teachers):
     data = {}
     for teacher_code, teacher in teachers.items():
@@ -186,9 +212,10 @@ def save_teachers(teachers):
             "Email": teacher.email,
             "Password": teacher.password
         }
+    #writing the information
     with open("teachers.json","w") as file:
         json.dump(data, file, indent = 4)
-
+#converting student objects into dictionary and save them
 def save_students(students):
     data = {}
     for student_id, student in students.items():
@@ -197,6 +224,7 @@ def save_students(students):
             "Email":student.email,
             "Password":student.password,
             "Inventory":student.inventory,
+            #converts each notification object into dictionary before storing on JSON
             "Notifications": [
                 notification.to_dictionary()
                 for notification in student.notifications
@@ -206,20 +234,26 @@ def save_students(students):
     with open("students.json","w") as file:
         json.dump(data,file,indent = 4)
 
+#load previously submitted incident reports from reports.json
 def load_reports():
     try:
         with open("reports.json","r") as file:
             return json.load(file)
     except FileNotFoundError:
+        #start with an empty list if no reports have been submitted
         return []
 
+#save the current list of incident reports to JSON
 def save_reports(reports):
     with open("reports.json","w") as file:
         json.dump(reports, file, indent = 4)
 
+#hash passwords using SHA-256 before they are stored or compared
+#keeps original password private
 def hash_pswd(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+#sending email notification to a student for overdue items
 def send_email(recipient, subject, message):
     try:
         email = EmailMessage()
@@ -234,13 +268,15 @@ def send_email(recipient, subject, message):
         server.quit()
         return True
     except Exception:
+        #return false if the email could not be sent
         return False
 
 #inventory main app class
+#controls the GUI and connects different classes and functions together
 class InventoryApp:
 
     def __init__(self, root):
-        #window
+        #configuring main application window
         self.root = root
         self.root.title("Inventory Management System")
         self.root.state("zoomed")
@@ -271,27 +307,31 @@ class InventoryApp:
         # Start with the login page
         self.show_login()
 
+    #removing all widgets from main frame before displaying new page
     def clear_main_frame(self):
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
+    #removing all widgets from the footer before displaying a new page
     def clear_footer(self):
         for widget in self.footer_frame.winfo_children():
             widget.destroy()
 
+    #creates a reusable button design so buttons across the program have a consistent appearance
     def create_button(self,parent, text, command, width = 20):
         button = Button(parent, text= text, width = width, height =2, bg = "midnightblue",fg = "white",activebackground = "lightskyblue1",activeforeground = "midnightblue",command = command)
         button.pack(side = LEFT, padx = 8)
         return button
 
-
-
+    #display the login page 
+    #users can choose between student or teacher account
     def show_login(self):
         self.clear_main_frame()
         self.clear_footer()
 
         Label(self.main_frame,text="LOGIN",font=("Garamond", 28, "bold"),bg="aliceblue",fg="midnightblue").pack(pady=40)
 
+        #stores selected account type so the login function can search between either students.json or teachers.json
         account_type = StringVar()
         account_type.set("Student")
         Label(self.main_frame, text = "Account Type", font = ("Calibri",12),bg = "aliceblue").pack()
@@ -304,6 +344,7 @@ class InventoryApp:
         pswdentry = Entry(self.main_frame, width = 30, show = "*")
         pswdentry.pack(pady =10)
         def login():
+            #get and remove unnecessary spaces from the entered details
             login_id = identry.get().strip()
             password = pswdentry.get()
             #checking for empty fields
@@ -311,24 +352,31 @@ class InventoryApp:
                 messagebox.showwarning("Missing Information","Please enter your Student ID/Teacher Code and password.")
                 return
 
-            #teacher login
+            #teacher login uses teacher code stored in teachers.json
             if account_type.get() == "Teacher":
                 #validating teacher code is 3 letters
                 if len(login_id)!=3 or not login_id.isalpha():
                     messagebox.showerror("Invalid Teacher Code","Teacher code must be 3 letters")
                     return
+                #convert the code to uppercase so teacher codes are entered consistently
                 login_id = login_id.upper()
+                #check whether this code exists in teachers.json
                 if login_id not in self.teachers:
                     messagebox.showerror("Login Failed", "Teacher code does not exist")
                     return
+                #retrieve the matching Teacher object
                 teacher = self.teachers[login_id]
+                #hashing the password and comparing with one stored on JSON file
                 if hash_pswd(password)!= teacher.password:
                     messagebox.showerror("Login Failed","Incorrect Password, please try again")
                     return
+                #store the current logged in teacher
+                #remove any previously stored student session
                 self.current_teacher  = teacher
                 self.current_student = None
+                #open the teacher dashboard after successful login
                 self.show_teacher_dashboard()
-            #student login
+            #student login uses 5-digit ID
             else:
                 #validating the student id
                 if not login_id.isdigit() or len(login_id) !=5:
@@ -364,7 +412,8 @@ class InventoryApp:
         
         self.create_footer()
 
-
+    #display the student account sign up page
+    #teachers dont need to use this page becase their accounts are pre-created by the school in teachers.json
     def show_signup(self):
         self.clear_main_frame()
         self.clear_footer()
@@ -382,6 +431,7 @@ class InventoryApp:
         pswdentry = Entry(self.main_frame, width = 30, show = "*")
         pswdentry.pack(pady = 5)
         def signup():
+            #retrieve information entered by student
             name = nameentry.get().strip()
             student_id = identry.get().strip()
             email = emailentry.get().strip()
@@ -424,6 +474,7 @@ class InventoryApp:
 
         self.create_footer()
 
+    #display the incident reporting page for students
     def show_reports(self):
             self.clear_main_frame()
             self.clear_footer()
@@ -441,6 +492,7 @@ class InventoryApp:
             descentry.pack(pady = 10)
     
             def submit_report():
+                #collect the location, incident type, and optional description entered by the student
                 location = locentry.get().strip()
                 incident_type = incentry.get().strip()
                 description = descentry.get("1.0",END).strip()
@@ -448,7 +500,7 @@ class InventoryApp:
                 if not location or not incident_type:
                     messagebox.showwarning("Missing Information","Please complete all fields.")
                     return
-                #create a report dictionary
+                #create a report dictionary so it can be saved in reports.json and used by teachers
                 report = {
                     "Location":location,
                     "Type of Incident":incident_type,
@@ -471,10 +523,11 @@ class InventoryApp:
             self.create_button(buttonframe, "Submit Report",submit_report,20)
             self.create_button(buttonframe, "Return to Dashboard",self.show_home,20)
     
-
+    #display the main dashboard for the currently logged in student
     def show_home(self):
         self.clear_main_frame()
         self.clear_footer()
+        #check for newly overdue items whenever the dashboard opens
         self.check_notifications()
         student = self.current_student
 
@@ -493,6 +546,7 @@ class InventoryApp:
         Button(buttonframe, text ="🚨 Report an Incident", command = self.show_reports,width =20,bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side = LEFT, padx = 8)
         Button(buttonframe, text = "Logout", command = self.logout,width =20,bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side =LEFT, padx = 8)
 
+    #display all inventory items belonging to this current student
     def show_inventory(self):
         self.clear_main_frame()
         self.clear_footer()
@@ -509,6 +563,7 @@ class InventoryApp:
         #displaying the items
         if len(student.inventory) ==0:
             Label(inventoryframe, text = "No items have been stored yet.",font = ("Calibri",12),bg = "aliceblue").grid(row = 1, column = 0, columnspan = 3, pady = 30)
+        #else, loop through inventory list and display each item's details
         else:
             for index, item in enumerate(student.inventory):
                 Label(inventoryframe, text = item["Name"],bg = "white",width =20).grid(row = index + 1, column = 0, padx = 10, pady = 5)
@@ -521,6 +576,7 @@ class InventoryApp:
         self.create_button(buttonframe,  "Remove an Item", self.delete_item)
         self.create_button(buttonframe,"Return to Dashboard", self.show_home)
 
+    #open a pop-up window so the student can enter an inventory item
     def add_item(self):
         #creating a new separate window to add items from
         addwindow = Toplevel(self.root)
@@ -553,7 +609,7 @@ class InventoryApp:
             if not item_name or not item_id or not due_date:
                 messagebox.showwarning("Missing Informaiton","Please complete all fields.")
                 return
-            #checking for valid date time
+            #checking for valid date format
             try:
                 valid_date = datetime.strptime(due_date,"%d/%m/%Y")
             except ValueError:
@@ -584,6 +640,7 @@ class InventoryApp:
         self.create_button(buttonframe, "Save Item", save_item,20).pack(pady = 20)
         self.create_button(buttonframe,"Cancel", addwindow.destroy,20)
 
+    #allow the student to select and remove an item from their inventory
     def delete_item(self):
         student = self.current_student
         #again, checking whether inventory is empty
@@ -600,6 +657,7 @@ class InventoryApp:
         Label(deletewindow, text = "Remove an item from your inventory.",font = ("Garamond",22,"bold"),bg = "aliceblue",fg ="midnightblue").pack(pady = 20)
         Label(deletewindow, text = "Select the number of the item you wish to remove: ",bg = "aliceblue").pack(pady = 10)
 
+        #display each inventory item with a number so the user can easily select the item they wish to remove
         for index, item in enumerate(student.inventory):
             Label(deletewindow, text = f"{index+1}.{item["Name"]}"f"({item["ID Number"]})",bg = "aliceblue").pack(pady = 3)
 
@@ -608,17 +666,21 @@ class InventoryApp:
 
         def confirm_delete():
             index_text = indexentry.get().strip()
+            #validate that the user entered a number
             if not index_text.isdigit():
                 messagebox.showerror("Invalid Input","Please enter a valid item number from the list.")
                 return
+            #convert the displayed number into the correct, corresponding python list index
             index = int(index_text) - 1
             if index < 0 or index >= len(student.inventory):
                 messagebox.showerror("Invalid Item","That item number does not exist")
                 return
 
             item_name = student.inventory[index]["Name"]
+            #asking the user to confirm before permanently removing the item
             confirmation = messagebox.askyesno("Confirm Delete",f"Are you sure you want to remove "f"'{item_name}'?")
             if confirmation:
+                #remove the selected item and save the new inventory
                 student.delete_item(index)
                 save_students(self.students)
                 messagebox.showinfo("Item Deleted","Item Successfully Removed")
@@ -628,6 +690,7 @@ class InventoryApp:
         Button(deletewindow, text = "Remove", width =20, command = confirm_delete).pack(pady = 10)
         Button(deletewindow, text = "Cancel", width = 20, command = deletewindow.destroy).pack()
 
+    #display notifications belonging to the currently logged in student
     def show_notifications(self):
         self.clear_main_frame()
         self.clear_footer()
@@ -636,6 +699,7 @@ class InventoryApp:
         if len(self.current_student.notifications) == 0:
             Label(self.main_frame, text = "You have no new notifications.", bg = "aliceblue").pack(pady=20)
         else:
+            #only display the unread notifications to the student
             for notification in self.current_student.notifications:
                 if not notification.read:
                     Label(self.main_frame, text = f"⚠ {notification.message}",bg = "white",width = 60, pady = 10).pack(pady = 5)
@@ -643,6 +707,7 @@ class InventoryApp:
 
         Button(self.main_frame, text = "Return to Dashboard", command = self.show_home).pack(pady = 20)
 
+    #check for overdue items and create a notification when overdue
     def check_notifications(self):
         student = self.current_student
         for item in student.inventory:
@@ -650,7 +715,9 @@ class InventoryApp:
                 due_date = datetime.strptime(item["Due Date"],"%d/%m/%Y")
             except ValueError:
                 continue
+            #compare the item's due date to today's date
             if due_date.date() < datetime.now().date():
+                #create a message containing the item's name and due date
                 message = (
                     f"Your item '{item["Name"]}'"
                     f"is overdue."
@@ -662,19 +729,24 @@ class InventoryApp:
                     if notification.message == message:
                         notification_exists = True
                         break
+                #create and save the notification if it doesn't exist
                 if not notification_exists:
                     notification = Notification(message, "Overdue")
                     student.add_notification(notification)
+                    #attempt to notify the student by email
                     email_sent = send_email(student.email,"Inventory Management Alert",message)
                     save_students(self.students)
 
+    #display the teacher dashboard showing statistics and report trends
     def show_teacher_dashboard(self):
         self.clear_main_frame()
         self.clear_footer()
 
         Label(self.main_frame, text = "Teacher Dashboard", font = ("Garamond",28,"bold"), bg = "aliceblue",fg = "midnightblue").pack(pady = 30)
+        #analyse the current student and incident report data
         teacher = self.current_teacher
         trends = teacher.analyse_trends(self.students, self.reports)
+        #display the calculated statistics so teacher can see the patterns
         Label(self.main_frame, text = "Inventory Insights",font = ("Garamond",20,"bold"),bg ="aliceblue",fg = "midnightblue").pack(pady=20)
         Label(self.main_frame, text = f"Total Students: {trends["Students"]}",bg = "aliceblue").pack(pady = 10)
         Label(self.main_frame, text = f"Total Items: {trends["Items"]}",bg = "aliceblue").pack(pady = 10)
@@ -683,12 +755,16 @@ class InventoryApp:
         Label(self.main_frame, text = f"Most Common Incident: {trends["Common Incident"]}",bg = "aliceblue").pack(pady = 5)
         Label(self.main_frame, text = f"Most Common Location: {trends["Common Location"]}",bg = "aliceblue").pack(pady = 5)
 
+        #generate a recommended action based on trends
+        #this turns collected data into useful information that the teacher can use to take appropriate action
         if trends["Overdue"]>0:
             action = (
                 "Consider reminding students about due dates and review the returning process"
             )
+        #if there are many incident reports, recommend investigating the locations where they occur
         elif trends["Reports"]>=5:
             action=("Consider reviewing the areas where incidents are occurring most frequently.")
+        #else, display a general message when there are only a few issues requiring teacher attention
         else:
             action = ("Inventory records are currently showing very few issues to discuss.")
 
@@ -699,7 +775,7 @@ class InventoryApp:
         buttonframe.pack(pady =20)
         self.create_button(buttonframe, "Logout",self.logout,20)
         
-
+    #create a reusable card to display statistics on the dashboard
     def create_stat_card(self, parent, icon, title, value):
         card = Frame(parent, bg = "white", bd = 1, relief = "solid",width = 220, height = 130)
         card.pack(side = LEFT, padx =10)
@@ -708,18 +784,24 @@ class InventoryApp:
         Label(card, text = title, font = ("Garamond",13,"bold"),bg = "white").pack()
         Label(card, text = value, font = ("Garamond",20,"bold"),bg ="white").pack()
 
+    #clearing the current user and return to login page
     def logout(self):
         self.current_student = None
         self.current_teacer = None
         self.show_login()
 
+    #asking user for confirmation before fully closing program
     def exit_program(self):
         answer = messagebox.askyesno("Exit Program","Are you sure you want to exit?")
         if answer:
+            #save all information stored in the session before closing
             save_students(self.students)
             save_reports(self.reports)
+            #close the application window
             self.root.destroy()
 
+    #create reusable information cards for login/signup pages
+    #these introduce the main features of the system
     def create_footer(self):
         cards = [
             ("📦","Pocket Inventory","Keep track of \nstudent belongings."),
@@ -779,7 +861,11 @@ class InventoryApp:
 
 
 #start the program
+#generating the main Tkinter window
 root = Tk()
+#create an instance of InventoryApp and pass the window into it
 app = InventoryApp(root)
+#make the window's close button use the same exit procedure so that data is saved before closed
 root.protocol("WM_DELETE_WINDOW",app.exit_program)
+#keep the GUI running and responsive until user exits program
 root.mainloop()
