@@ -83,12 +83,40 @@ class Teacher(User):
                         total_overdue +=1
                 except ValueError:
                     continue 
+        #find the most common incident type
+        incident_types = {}
+        for report in reports:
+            incident_type = report["Type of Incident"]
+            if incident_type in incident_types:
+                incident_types[incident_type]+=1
+            else:
+                incident_types[incident_type] =1
+
+        most_common_incident = "None"
+        if incident_types:
+            most_common_incident = max(incident_types, key = incident_types.get)
+
+        #find most common location
+        locations = {}
+        for report in reports:
+            location = report["Location"]
+            if location in locations:
+                locations[location]+=1
+            else:
+                locations[location] = 1
+
+        most_common_location = "None"
+        if locations:
+            most_common_location = max(locations, key = locations.get)
+
 
         return {
             "Students":total_students,
             "Items":total_items,
             "Reports":total_reports,
-            "Overdue":total_overdue
+            "Overdue":total_overdue,
+            "Common Incident": most_common_incident,
+            "Common Location": most_common_location
         }
 #notifications class
 class Notification:
@@ -147,8 +175,8 @@ def load_teachers():
             )
             teachers[teacher_code] = teacher
         return teachers
-    except FileNotFoundError
-    return {}
+    except FileNotFoundError:
+        return {}
 
 def save_teachers(teachers):
     data = {}
@@ -408,10 +436,14 @@ class InventoryApp:
             Label(self.main_frame, text = "Incident Type", bg = "aliceblue").pack()
             incentry = Entry(self.main_frame, width = 30)
             incentry.pack(pady = 10)
+            Label(self.main_frame, text = "Description of Incident (optional)", bg ="aliceblue").pack()
+            descentry = Text(self.main_frame, width = 40, height = 5)
+            descentry.pack(pady = 10)
     
             def submit_report():
                 location = locentry.get().strip()
                 incident_type = incentry.get().strip()
+                description = descentry.get("1.0",END).strip()
                 #checking for empty fields
                 if not location or not incident_type:
                     messagebox.showwarning("Missing Information","Please complete all fields.")
@@ -420,7 +452,8 @@ class InventoryApp:
                 report = {
                     "Location":location,
                     "Type of Incident":incident_type,
-                    "Student ID":self.current_student.student_id
+                    "Description":description,
+                    "Student ID":self.current_student.student_id,
                 }
                 #add and save report
                 self.reports.append(report)
@@ -466,7 +499,7 @@ class InventoryApp:
         student = self.current_student
 
         Label(self.main_frame, text = "My Inventory", font = ("Garamond",28,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady =25)
-        Label(self.main_frame, text = f"{student.name}'stored items",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
+        Label(self.main_frame, text = f"{student.name}'s stored items",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
 
         inventoryframe = Frame(self.main_frame, bg = "aliceblue")
         inventoryframe.pack(fill = BOTH, expand = True, padx = 50, pady = 20)
@@ -642,11 +675,26 @@ class InventoryApp:
         Label(self.main_frame, text = "Teacher Dashboard", font = ("Garamond",28,"bold"), bg = "aliceblue",fg = "midnightblue").pack(pady = 30)
         teacher = self.current_teacher
         trends = teacher.analyse_trends(self.students, self.reports)
+        Label(self.main_frame, text = "Inventory Insights",font = ("Garamond",20,"bold"),bg ="aliceblue",fg = "midnightblue").pack(pady=20)
         Label(self.main_frame, text = f"Total Students: {trends["Students"]}",bg = "aliceblue").pack(pady = 10)
         Label(self.main_frame, text = f"Total Items: {trends["Items"]}",bg = "aliceblue").pack(pady = 10)
         Label(self.main_frame, text = f"Incident Reports: {trends["Reports"]}",bg = "aliceblue").pack(pady = 10)
         Label(self.main_frame,text = f"Overdue Items: {trends["Overdue"]}",bg = "aliceblue").pack(pady =10)
+        Label(self.main_frame, text = f"Most Common Incident: {trends["Common Incident"]}",bg = "aliceblue").pack(pady = 5)
+        Label(self.main_frame, text = f"Most Common Location: {trends["Common Location"]}",bg = "aliceblue").pack(pady = 5)
 
+        if trends["Overdue"]>0:
+            action = (
+                "Consider reminding students about due dates and review the returning process"
+            )
+        elif trends["Reports"]>=5:
+            action=("Consider reviewing the areas where incidents are occurring most frequently.")
+        else:
+            action = ("Inventory records are currently showing very few issues to discuss.")
+
+        Label(self.main_frame, text = "Recommended Action", font = ("Garamond",18,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
+        Label(self.main_frame,text = action, wraplength = 700, bg = "white", padx = 20, pady = 15).pack()
+        
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady =20)
         self.create_button(buttonframe, "Logout",self.logout,20)

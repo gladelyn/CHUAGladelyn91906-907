@@ -22,5 +22,18 @@
                 "Read": false
             }
         ]
+    },
+    "27345": {
+        "Name": "John Parker",
+        "Email": "john@test.com",
+        "Password": "d10a8e4e6e5bcabb5ba4fd2c9b9cce591b2b362ad125a7d7822b35fc3d608be9",
+        "Inventory": [
+            {
+                "Name": "English Novel",
+                "ID Number": "ENG2",
+                "Due Date": "24/11/2026"
+            }
+        ],
+        "Notifications": []
     }
 }
