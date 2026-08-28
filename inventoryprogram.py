@@ -74,7 +74,7 @@ class Teacher(User):
     def __init__(self, teachercode, name, email, password):
         User.__init__(self,name, email, password)
         self.teachercode = teachercode
-        
+
     #function to analyse information across all registered students to provide useful statistics
     def analyse_trends(self, students, reports):
         #counting the total number of registered students
@@ -541,10 +541,10 @@ class InventoryApp:
         Label(self.main_frame, text = "Quick Actions",font = ("Garamond",20,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
-        Button(buttonframe,text ="📦 Manage Your Inventory", command = self.show_inventory,width =20, bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side = LEFT, padx = 8)
-        Button(buttonframe,text =  "🔔 Notifications", command = self.show_notifications,width =20,bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side = LEFT, padx = 8)
-        Button(buttonframe, text ="🚨 Report an Incident", command = self.show_reports,width =20,bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side = LEFT, padx = 8)
-        Button(buttonframe, text = "Logout", command = self.logout,width =20,bg = "aliceblue",fg = "midnightblue",activebackground = "midnightblue",activeforeground = "lightskyblue1").pack(side =LEFT, padx = 8)
+        Button(buttonframe,text ="📦 Manage Your Inventory", command = self.show_inventory,width =20, bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue").pack(side = LEFT, padx = 8)
+        Button(buttonframe,text =  "🔔 Notifications", command = self.show_notifications,width =20,bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue").pack(side = LEFT, padx = 8)
+        Button(buttonframe, text ="🚨 Report an Incident", command = self.show_reports,width =20,bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue").pack(side = LEFT, padx = 8)
+        Button(buttonframe, text = "Logout", command = self.logout,width =20,bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue").pack(side =LEFT, padx = 8)
 
     #display all inventory items belonging to this current student
     def show_inventory(self):
