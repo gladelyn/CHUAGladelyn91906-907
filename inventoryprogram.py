@@ -536,6 +536,12 @@ class InventoryApp:
         stats_frame = Frame(self.main_frame, bg = "aliceblue")
         stats_frame.pack(pady = 30)
         self.create_stat_card(stats_frame,"📦", "Total Items", len(student.inventory) )
+        #count the unread notifications for the dashboard
+        unread_notifications = 0
+        for notification in student.notifications:
+            if not notification.read:
+                unread_notifications +=1
+        self.create_stat_card(stats_frame, "🔔","Unread Alerts",unread_notifications)
 
         #quick action buttons
         Label(self.main_frame, text = "Quick Actions",font = ("Garamond",20,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
