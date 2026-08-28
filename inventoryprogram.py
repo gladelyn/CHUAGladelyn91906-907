@@ -573,7 +573,7 @@ class InventoryApp:
         Label(self.main_frame, text = f"{student.name}'s stored items",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
 
         #search and filter controls to easily navigate inventory
-        search_frame = Frame(self.main_frame, bg ="aliceble")
+        search_frame = Frame(self.main_frame, bg ="aliceblue")
         search_frame.pack(pady = 15)
         Label(search_frame, text = "Search Inventory:", bg ="aliceblue").pack(side = LEFT, padx = 5)
         searchentry = Entry(search_frame, width = 25)
@@ -594,7 +594,7 @@ class InventoryApp:
 
         #a frame where the inventory items will be displayed
         inventoryframe = Frame(self.main_frame, bg = "aliceblue")
-        inventoryframe.pack(fill = BOTH, expand = True, padx = 50, pady = 20)
+        inventoryframe.pack(pady = 20)
 
         def display_inventory():
             #clearing the previous inventory display
@@ -651,6 +651,7 @@ class InventoryApp:
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
         self.create_button(buttonframe, "Add an Item", self.add_item)
+        self.create_button(buttonframe, "Update Status", self.update_status)
         self.create_button(buttonframe,  "Remove an Item", self.delete_item)
         self.create_button(buttonframe,"Return to Dashboard", self.show_home)
        
@@ -731,7 +732,7 @@ class InventoryApp:
         #creating a new separate window to remove items
         deletewindow = Toplevel(self.root)
         deletewindow.title("Remove an Item")
-        deletewindow.geometry("400x400")
+        deletewindow.geometry("600x600")
         deletewindow.configure(bg = "aliceblue")
 
         Label(deletewindow, text = "Remove an item from your inventory.",font = ("Garamond",22,"bold"),bg = "aliceblue",fg ="midnightblue").pack(pady = 20)
@@ -769,6 +770,71 @@ class InventoryApp:
 
         Button(deletewindow, text = "Remove", width =20, command = confirm_delete).pack(pady = 10)
         Button(deletewindow, text = "Cancel", width = 20, command = deletewindow.destroy).pack()
+
+    #updating the status of an item in a student's inventory
+    def update_item_status(self, index, status):
+        #check that selected index is valid
+        if 0<= index < len(self.inventory):
+            self.inventory[index]["Status"] = status
+            return True
+        return False
+
+    #allow students to update an item's status
+    def update_status(self):
+        student = self.current_student
+        #checking whether the student actually has items in their inventory
+        if len(student.inventory) ==0:
+            messagebox.showinfo("No Items","There are no items in your inventory to update.")
+            return
+
+        #create a separate window to update the status
+        updatewindow = Toplevel(self.root)
+        updatewindow.title("Update Item Status")
+        updatewindow.geometry("450x450")
+        updatewindow.configure(bg = "aliceblue")
+
+        Label(updatewindow, text = "Update Item Status", font = ("Garamond",22,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 20)
+        Label(updatewindow, text = "Select the number of the item:",bg = "aliceblue").pack(pady = 10)
+
+        #display each item with a number
+        for index, item in enumerate(student.inventory):
+            Label(updatewindow, text = f"{index+1}. {item["Name"]} ({item["ID Number"]})", bg = "aliceblue").pack(pady = 3)
+        indexentry = Entry(updatewindow, width = 20)
+        indexentry.pack(pady = 15)
+        Label(updatewindow, text = "Select the new status: ",bg = "aliceblue").pack(pady = 5)
+
+        #store the selected status
+        status = StringVar()
+        status.set("Missing")
+        OptionMenu(updatewindow, status, "Missing","Returned","Stored").pack(pady = 5)
+        def save_status():
+            index_text = indexentry.get().strip()
+            #check that user enters number correctly
+            if not index_text.isdigit():
+                messagebox.showerror("Invalid Input","Please enter a valid item number from the list.")
+                return
+            #converting displayed number into python list index
+            index = int(index_text)-1
+            #checking whether selected item exists
+            if index <0 or index >=len(student.inventory):
+                messagebox.showerror("Invalid Item","That item number does not exist.")
+                return
+            #get the selected status
+            new_status = status.get()
+            #update item's status
+            student.update_item_status(index, new_status)
+            #save to JSON file
+            save_students(self.students)
+            messagebox.showwinfo("Status Updated", f"{student.inventory[index]["Name"]} has been marked as {new_status}")
+
+            #close the popup and refresh inventory page
+            updatewindow.destroy()
+            self.show_inventory()
+
+        buttonframe = Frame(updatewindow, bg = "aliceblue")
+        buttonframe.pack(pady = 20)
+        self.create_button(buttonframe, "Save Status",save_status,20)
+        self.create_button(buttonframe, "Cancel",updatewindow.destroy(), 20)
 
     #display notifications belonging to the currently logged in student
     def show_notifications(self):
@@ -809,9 +875,6 @@ class InventoryApp:
                     Label(notification_frame, text = "✓ Read",bg = "white").pack(side = RIGHT, padx = 15)
 
         Button(self.main_frame, text = "Return to Dashboard",command = self.show_home).pack(pady = 20)
-
-
-        Button(self.main_frame, text = "Return to Dashboard", command = self.show_home).pack(pady = 20)
 
     #check for overdue items and create a notification when overdue
     def check_notifications(self):
