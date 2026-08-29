@@ -962,6 +962,17 @@ class InventoryApp:
             button = Button(self.footer_frame, text = text, bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",width = 18,height =2, command = command)
             button.pack(side = LEFT, expand = True, padx = 5, pady = 5)
 
+    #creating navigation footer for teacher dashboard
+    def teacher_navigation_footer(self):
+        buttons = [
+            ("🏠 Dashboard",self.show_teacher_dashboard),
+            ("🚨 View Reports",self.show_teacher_reports),
+            ("↪ Logout",self.logout)
+        ]
+        for text, command in buttons:
+            button = Button(self.footer_frame, text = text, bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",width = 25, height = 2,command = command)
+            button.pack(side = LEFT, expand = True, padx = 20, pady = 20)
+
     #create reusable information cards for login/signup pages
     #these introduce the main features of the system
     def create_footer(self):
