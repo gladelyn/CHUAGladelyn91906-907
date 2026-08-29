@@ -797,7 +797,7 @@ class InventoryApp:
         buttonframe = Frame(addwindow, bg = "aliceblue")
         buttonframe.pack(pady = 20)
         self.create_button(buttonframe, "Clear Fields",clear_fields,20)
-        self.create_button(buttonframe, "Save Item", save_item,20).pack(pady = 20)
+        self.create_button(buttonframe, "Save Item", save_item,20)
         self.create_button(buttonframe,"Cancel", addwindow.destroy,20)
 
     #allow the student to select and remove an item from their inventory
