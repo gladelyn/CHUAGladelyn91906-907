@@ -37,7 +37,7 @@ class Student:
 
         #loop through each item in the student's inventory
         for item in self.inventory:
-            print(f"NameL {item['Name']}")
+            print(f"Name: {item['Name']}")
             print(f"ID Number: {item['ID Number']}")
             print(f"Due Date: {item['Due Date']}")
             print("---------------------------") 
