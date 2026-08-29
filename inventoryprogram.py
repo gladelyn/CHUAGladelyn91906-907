@@ -1035,7 +1035,7 @@ class InventoryApp:
         self.teacher_navigation_footer()
 
         Label(self.main_frame, text = "Incident Reports",font = ("Garamond",28,"bold"),bg ="aliceblue",fg ="midnightblue").pack(pady = 30)
-        Label(self.main_frame, text = "Review the details submitted by students",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
+        Label(self.main_frame, text = "Use the scrollbar to review the details submitted by students",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
 
         #checking whether any reports have been submitted
         if len(self.reports) == 0:

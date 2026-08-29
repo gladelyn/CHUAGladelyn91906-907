@@ -33,5 +33,12 @@
         "Type of Incident": "Theft",
         "Description": "",
         "Student ID": 27654
+    },
+    {
+        "Location": "Lockers - WHANAU 6",
+        "Type of Incident": "Vandalism",
+        "Description": "",
+        "Date and Time": "30/08/2026 12:30",
+        "Student ID": 27810
     }
 ]
