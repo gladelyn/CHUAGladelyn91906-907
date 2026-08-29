@@ -6,6 +6,15 @@ from datetime import datetime #date validation
 import json #JSON file storage
 import hashlib #password encryption
 
+#status constants used across inventory items
+STATUS_STORED = "Stored"
+STATUS_MISSING = "Missing"
+STATUS_RETURNED = "Returned"
+STATUS_OVERDUE = "Overdue"
+#constants used throughout program
+STUDENT_ID_LENGTH = 5
+TEACHER_CODE_LENGTH = 3
+
 #User class (generic parent class which has all the attributes for teacher and student)
 class User:
     def __init__(self, name, email, password):
@@ -326,7 +335,7 @@ class InventoryApp:
             #teacher login uses teacher code stored in teachers.json
             if account_type.get() == "Teacher":
                 #validating teacher code is 3 letters
-                if len(login_id)!=3 or not login_id.isalpha():
+                if len(login_id)!=TEACHER_CODE_LENGTH or not login_id.isalpha():
                     messagebox.showerror("Invalid Teacher Code","Teacher code must be 3 letters")
                     return
                 #convert the code to uppercase so teacher codes are entered consistently
@@ -350,7 +359,7 @@ class InventoryApp:
             #student login uses 5-digit ID
             else:
                 #validating the student id
-                if not login_id.isdigit() or len(login_id) !=5:
+                if not login_id.isdigit() or len(login_id) !=STUDENT_ID_LENGTH:
                     messagebox.showerror("Invalid Student ID","Student ID must be 5 digits.")
                     return
                 student_id = int(login_id)
@@ -413,7 +422,7 @@ class InventoryApp:
                 messagebox.showwarning("Missing Information","Please complete all fields.")
                 return
             #check student id
-            if not student_id.isdigit() or len(student_id)!= 5:
+            if not student_id.isdigit() or len(student_id)!= STUDENT_ID_LENGTH:
                 messagebox.showerror("Invalid Student ID","Student ID must be 5 digits")
                 return
             student_id = int(student_id)
@@ -650,10 +659,10 @@ class InventoryApp:
         status_filter.set("All")
         status_options = [
             "All",
-            "Stored",
-            "Overdue",
-            "Missing",
-            "Returned"
+            STATUS_STORED,
+            STATUS_OVERDUE,
+            STATUS_MISSING,
+            STATUS_RETURNED
         ]
         OptionMenu(search_frame, status_filter, *status_options).pack(side = LEFT, padx = 5)
 
@@ -680,7 +689,7 @@ class InventoryApp:
             #check every item against the search and filter
             for item in student.inventory:
                 item_name = item["Name"].lower()
-                item_status = item.get("Status", "Stored")
+                item_status = item.get("Status", STATUS_STORED)
                 #check whether item matches the search
                 matches_search = (
                     search_text in item_name or search_text in item["ID Number"].lower()
@@ -701,7 +710,7 @@ class InventoryApp:
                     Label(inventoryframe, text = item["Name"],bg = "snow",width = 20).grid(row = index+1, column = 0, padx = 10, pady = 5)
                     Label(inventoryframe, text = item["ID Number"],bg = "snow",width = 20).grid(row = index+1, column = 1, padx = 10, pady = 5)
                     Label(inventoryframe, text = item["Due Date"], bg = "snow",width = 20).grid(row = index+1, column = 2, padx = 10, pady = 5)
-                    Label(inventoryframe, text = item.get("Status","Stored"),bg = "snow",width = 20).grid(row = index+1, column = 3, padx = 10, pady =5)
+                    Label(inventoryframe, text = item.get("Status", STATUS_STORED),bg = "snow",width = 20).grid(row = index+1, column = 3, padx = 10, pady =5)
 
         #update the inventory whenever the search text changes
         searchentry.bind("<KeyRelease>",lambda event:display_inventory())
@@ -770,7 +779,7 @@ class InventoryApp:
                 "Name":item_name,
                 "ID Number":item_id,
                 "Due Date": due_date,
-                "Status":"Stored"
+                "Status":STATUS_STORED
             }
             #adding item to current student's inventory list then saving
             self.current_student.add_item(item)
@@ -863,8 +872,8 @@ class InventoryApp:
 
         #store the selected status
         status = StringVar()
-        status.set("Missing")
-        OptionMenu(updatewindow, status, "Missing","Returned","Stored").pack(pady = 5)
+        status.set(STATUS_MISSING)
+        OptionMenu(updatewindow, status, STATUS_MISSING,STATUS_RETURNED,STATUS_STORED).pack(pady = 5)
         def save_status():
             index_text = indexentry.get().strip()
             #check that user enters number correctly
@@ -945,7 +954,7 @@ class InventoryApp:
             #compare the item's due date to today's date
             if due_date.date() < datetime.now().date():
                 #update the item's status when its due date has passed
-                item["Status"] = "Overdue"
+                item["Status"] = STATUS_OVERDUE
                 #create a message containing the item's name and due date
                 message = (
                     f"Your item '{item['Name']}'"
