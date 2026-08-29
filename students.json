@@ -7,7 +7,8 @@
             {
                 "Name": "Basketball Gear",
                 "ID Number": "SPORTSGEAR",
-                "Due Date": "31/10/2026"
+                "Due Date": "31/10/2026",
+                "Status": "Missing"
             },
             {
                 "Name": "Maths Textbook",
@@ -20,7 +21,7 @@
             {
                 "Message": "Your item 'Maths Textbook'is overdue.It was due on 20/04/2026.",
                 "Type": "Overdue",
-                "Read": false
+                "Read": true
             }
         ]
     },

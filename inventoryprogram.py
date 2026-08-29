@@ -34,6 +34,14 @@ class Student(User):
             return self.inventory.pop(index)
         return None
 
+    #updating the status of an item in a student's inventory
+    def update_item_status(self, index, status):
+        #check that selected index is valid
+        if 0<= index < len(self.inventory):
+            self.inventory[index]["Status"] = status
+            return True
+        return False
+
     #adding a new notification to the student's notification list
     def add_notification(self, notification):
         self.notifications.append(notification)
@@ -123,6 +131,7 @@ class Notification:
             "Type":self.notification_type,
             "Read":self.read
         }
+    
 #loading students information to students.json file
 def load_students():
     try:
@@ -153,6 +162,7 @@ def load_students():
     #if the JSON file doesn't exist, start with an empty dictionary
     except FileNotFoundError:
         return {}
+    
 #loading teachers on a separate teachers.json file 
 #teacher accounts are controlled by the school rather than being created through the signup page
 def load_teachers():
@@ -173,6 +183,7 @@ def load_teachers():
     #if no teacher files exists, start with no registered teachers
     except FileNotFoundError:
         return {}
+    
 #convert teacher objects into dictionaries so it can be saved on JSON
 def save_teachers(teachers):
     data = {}
@@ -186,6 +197,7 @@ def save_teachers(teachers):
     with open("teachers.json","w") as file:
         json.dump(data, file, indent = 4)
 #converting student objects into dictionary and save them
+
 def save_students(students):
     data = {}
     for student_id, student in students.items():
@@ -741,13 +753,6 @@ class InventoryApp:
         Button(deletewindow, text = "Remove", width =20, command = confirm_delete).pack(pady = 10)
         Button(deletewindow, text = "Cancel", width = 20, command = deletewindow.destroy).pack()
 
-    #updating the status of an item in a student's inventory
-    def update_item_status(self, index, status):
-        #check that selected index is valid
-        if 0<= index < len(self.inventory):
-            self.inventory[index]["Status"] = status
-            return True
-        return False
 
     #allow students to update an item's status
     def update_status(self):
@@ -795,7 +800,7 @@ class InventoryApp:
             student.update_item_status(index, new_status)
             #save to JSON file
             save_students(self.students)
-            messagebox.showwinfo("Status Updated", f"{student.inventory[index]["Name"]} has been marked as {new_status}")
+            messagebox.showinfo("Status Updated", f"{student.inventory[index]["Name"]} has been marked as {new_status}")
 
             #close the popup and refresh inventory page
             updatewindow.destroy()
@@ -804,7 +809,7 @@ class InventoryApp:
         buttonframe = Frame(updatewindow, bg = "aliceblue")
         buttonframe.pack(pady = 20)
         self.create_button(buttonframe, "Save Status",save_status,20)
-        self.create_button(buttonframe, "Cancel",updatewindow.destroy(), 20)
+        self.create_button(buttonframe, "Cancel",updatewindow.destroy, 20)
 
     #display notifications belonging to the currently logged in student
     def show_notifications(self):
