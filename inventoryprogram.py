@@ -275,14 +275,14 @@ class InventoryApp:
         self.title_frame = Frame(self.root,bg="midnightblue",height=80)
         self.title_frame.pack(fill=X)
         self.title_frame.pack_propagate(False)
-        Label(self.title_frame,text="INVENTORY MANAGEMENT SYSTEM",font=("Garamond", 24, "bold"),bg="midnightblue",fg="white").pack(pady=20)
+        Label(self.title_frame,text="INVENTORY MANAGEMENT SYSTEM",font=("Garamond", 24, "bold"),bg="midnightblue",fg="snow").pack(pady=20)
 
         #main frame
         self.main_frame = Frame(self.root,bg="aliceblue")
         self.main_frame.pack(fill=BOTH,expand=True)
 
         #footer frame
-        self.footer_frame = Frame(self.root,bg="white",height=160)
+        self.footer_frame = Frame(self.root,bg="snow",height=160)
         self.footer_frame.pack(fill=X)
         self.footer_frame.pack_propagate(False)
 
@@ -301,13 +301,13 @@ class InventoryApp:
 
     #creates a reusable button design so buttons across the program have a consistent appearance
     def create_button(self,parent, text, command, width = 20):
-        button = Button(parent, text= text, width = width, height =2, bg = "midnightblue",fg = "white",activebackground = "lightskyblue1",activeforeground = "midnightblue",command = command)
+        button = Button(parent, text= text, width = width, height =2, bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",command = command)
         #change button appearance when the mouse hovers
         def button_enter(event):
             event.widget.configure(bg = "lightskyblue1",fg = "midnightblue")
         #return the button to original appearance
         def button_leave(event):
-            event.widget.configure(bg = "midnightblue",fg = "white")
+            event.widget.configure(bg = "midnightblue",fg = "snow")
         button.bind("<Enter>",button_enter)
         button.bind("<Leave>",button_leave)
         button.pack(side = LEFT, padx = 8)
@@ -615,10 +615,10 @@ class InventoryApp:
             else:
                 #display each matching item
                 for index, item in enumerate(displayed_items):
-                    Label(inventoryframe, text = item["Name"],bg = "white",width = 20).grid(row = index+1, column = 0, padx = 10, pady = 5)
-                    Label(inventoryframe, text = item["ID Number"],bg = "white",width = 20).grid(row = index+1, column = 1, padx = 10, pady = 5)
-                    Label(inventoryframe, text = item["Due Date"], bg = "white",width = 20).grid(row = index+1, column = 2, padx = 10, pady = 5)
-                    Label(inventoryframe, text = item.get("Status","Stored"),bg = "white",width = 20).grid(row = index+1, column = 3, padx = 10, pady =5)
+                    Label(inventoryframe, text = item["Name"],bg = "snow",width = 20).grid(row = index+1, column = 0, padx = 10, pady = 5)
+                    Label(inventoryframe, text = item["ID Number"],bg = "snow",width = 20).grid(row = index+1, column = 1, padx = 10, pady = 5)
+                    Label(inventoryframe, text = item["Due Date"], bg = "snow",width = 20).grid(row = index+1, column = 2, padx = 10, pady = 5)
+                    Label(inventoryframe, text = item.get("Status","Stored"),bg = "snow",width = 20).grid(row = index+1, column = 3, padx = 10, pady =5)
 
         #update the inventory whenever the search text changes
         searchentry.bind("<KeyRelease>",lambda event:display_inventory())
@@ -830,11 +830,11 @@ class InventoryApp:
         else:
             #only display the unread notifications to the student
             for notification in self.current_student.notifications:
-                notification_frame = Frame(self.main_frame, bg ="white",bd = 1,relief = "solid")
+                notification_frame = Frame(self.main_frame, bg ="snow",bd = 1,relief = "solid")
                 notification_frame.pack(pady = 5, padx = 100, fill = X)
                 #display the notification message
                 Label(
-                    notification_frame, text = f"⚠ {notification.message}", bg = "white", wraplength = 600).pack(side = LEFT, padx = 15, pady = 15)
+                    notification_frame, text = f"⚠ {notification.message}", bg = "snow", wraplength = 600).pack(side = LEFT, padx = 15, pady = 15)
                 #only show the button for unread notifications
                 if not notification.read:
                     def mark_read(n = notification):
@@ -847,7 +847,7 @@ class InventoryApp:
 
                     Button(notification_frame, text = "Mark as Read",command = mark_read).pack(side = RIGHT, padx = 15)
                 else:
-                    Label(notification_frame, text = "✓ Read",bg = "white").pack(side = RIGHT, padx = 15)
+                    Label(notification_frame, text = "✓ Read",bg = "snow").pack(side = RIGHT, padx = 15)
 
         Button(self.main_frame, text = "Return to Dashboard",command = self.show_home).pack(pady = 20)
 
@@ -919,7 +919,7 @@ class InventoryApp:
             action = ("Inventory records are currently showing very few issues. Continue monitoring inventory and incident reports.")
 
         Label(self.main_frame, text = "Recommended Action", font = ("Garamond",18,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
-        Label(self.main_frame,text = action, wraplength = 700, bg = "white", padx = 20, pady = 15).pack()
+        Label(self.main_frame,text = action, wraplength = 700, bg = "snow", padx = 20, pady = 15).pack()
 
     #displaying all incident reports for teachers to review
     def show_teacher_reports(self):
@@ -927,7 +927,7 @@ class InventoryApp:
         self.clear_footer()
         self.teacher_navigation_footer()
 
-        Label(self.main_frame, text = "Incident Reports",font = ("Garamond",28,"bold"),bg ="sliceblue",fg ="midnightblue").pack(pady = 30)
+        Label(self.main_frame, text = "Incident Reports",font = ("Garamond",28,"bold"),bg ="aliceblue",fg ="midnightblue").pack(pady = 30)
         Label(self.main_frame, text = "Review the details submitted by students",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
 
         #checking whether any reports have been submitted
@@ -951,16 +951,16 @@ class InventoryApp:
             #incident type
             Label(reportframe, text = f"Type of Incident: {report["Type of Incident"]}",font = ("Calibri",11),bg = "snow").pack(anchor = "w",padx = 20, pady = 3)
             #description and checking whether there is a description to display
-            Label(reportframe, text = "Description: ",font = ("Calibri",11,"bold"),bg = "white").pack(anchor = "w",padx = 20,pady =(8,2))
+            Label(reportframe, text = "Description: ",font = ("Calibri",11,"bold"),bg = "snow").pack(anchor = "w",padx = 20,pady =(8,2))
             Label(reportframe, text = report["Description"] if report["Description"] else "No description provided.",font = ("Calibri",11),bg = "snow",wraplength = 800, justify = LEFT).pack(anchor = "w",padx = 20, pady = (0,15))        
     #create a reusable card to display statistics on the dashboard
     def create_stat_card(self, parent, icon, title, value):
-        card = Frame(parent, bg = "white", bd = 1, relief = "solid",width = 220, height = 130)
+        card = Frame(parent, bg = "snow", bd = 1, relief = "solid",width = 220, height = 130)
         card.pack(side = LEFT, padx =10)
         card.pack_propagate(False)
-        Label(card, text = icon, font = ("Segoe UI Emoji", 25), bg = "white").pack(pady = 5)
-        Label(card, text = title, font = ("Garamond",13,"bold"),bg = "white").pack()
-        Label(card, text = value, font = ("Garamond",20,"bold"),bg ="white").pack()
+        Label(card, text = icon, font = ("Segoe UI Emoji", 25), bg = "snow").pack(pady = 5)
+        Label(card, text = title, font = ("Garamond",13,"bold"),bg = "snow").pack()
+        Label(card, text = value, font = ("Garamond",20,"bold"),bg ="snow").pack()
 
     #clearing the current user and return to login page
     def logout(self):
