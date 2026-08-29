@@ -37,5 +37,26 @@
             }
         ],
         "Notifications": []
+    },
+    "27490": {
+        "Name": "May Chan",
+        "Email": "may@test.com",
+        "Password": "a2054c3d284e7cd9e03e7b6f78f6e00f0c54896256b49a0a5cee7b790cb98fc1",
+        "Inventory": [],
+        "Notifications": []
+    },
+    "27990": {
+        "Name": "Peter",
+        "Email": "peter@test.com",
+        "Password": "9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c",
+        "Inventory": [],
+        "Notifications": []
+    },
+    "27654": {
+        "Name": "Avril Lawson",
+        "Email": "avril@test.com",
+        "Password": "ba3b2bc22f6b4ad407e90377499f3418ebe629c369f7532820c028064bef68ce",
+        "Inventory": [],
+        "Notifications": []
     }
 }

@@ -473,29 +473,135 @@ class InventoryApp:
     
             Label(self.main_frame, text = "Report an Incident",font = ("Garamond",28,"bold"),bg = "aliceblue", fg = "midnightblue").pack(pady = 30)
             Label(self.main_frame, text = "Location",bg ="aliceblue").pack()
-            locentry = Entry(self.main_frame, width = 30)
-            locentry.pack(pady =10)
-            Label(self.main_frame, text = "Incident Type", bg = "aliceblue").pack()
-            incentry = Entry(self.main_frame, width = 30)
-            incentry.pack(pady = 10)
-            Label(self.main_frame, text = "Description of Incident (optional)", bg ="aliceblue").pack()
+            locationoptions = [
+                "WHANAU 1",
+                "WHANAU 2",
+                "WHANAU 3",
+                "WHANAU 4",
+                "WHANAU 6",
+                "Changing Rooms",
+                "Toilets",
+                "Lockers",
+                "Other"
+            ]
+            location = StringVar()
+            location.set("Select Location")
+            OptionMenu(self.main_frame, location, *locationoptions).pack(pady =10)
+            location_other_frame = Frame(self.main_frame, bg = "aliceblue")
+            location_other_frame.pack()
+            lockerwhanau_label = Label(location_other_frame, text = "Which Whanau?",bg = "aliceblue")
+            lockerwhanau = StringVar()
+            lockerwhanau.set("WHANAU 1")
+            lockermenu = OptionMenu(
+                location_other_frame, lockerwhanau, "WHANAU 1","WHANAU 2","WHANAU 3","WHANAU 4","WHANAU 5","WHANAU 6"
+            )
+            otherlocation = Label(location_other_frame, text = "Please specify the location:",bg = "aliceblue")
+            otherlocation_entry = Entry(location_other_frame, width = 30)
+            #function to change the extra fields depending on the location
+            def update_location(*args):
+                #removing any previously displayed extra fields
+                lockerwhanau_label.pack_forget()
+                lockermenu.pack_forget()
+                otherlocation.pack_forget()
+                otherlocation_entry.pack_forget()
+
+                #if locker is selected, then show Whanau dropdown
+                if location.get() == "Lockers":
+                    lockerwhanau_label.pack(pady = 3)
+                    lockermenu.pack(pady = 3)
+                #if Other is selected, show text entry
+                elif location.get() == "Other":
+                    otherlocation.pack(pady =3)
+                    otherlocation_entry.pack(pady =3)
+            #run the function whenever the location changes
+            location.trace_add("write",update_location)
+
+            Label(self.main_frame, text = "Incident Type", bg = "aliceblue").pack(pady = (15,0))
+            incidentoptions = [
+                "Theft",
+                "Missing Item",
+                "Vandalism",
+                "Other"
+            ]
+            incident_type = StringVar()
+            incident_type.set("Select Incident Type")
+            OptionMenu(self.main_frame, incident_type, *incidentoptions).pack(pady = 10)
+            #frame for other incident information
+            incident_other_frame = Frame(self.main_frame, bg = "aliceblue")
+            incident_other_frame.pack()
+            otherincident = Label(incident_other_frame, text = "Please specify the the incident", bg = "aliceblue")
+            otherincident_entry = Entry(incident_other_frame,width =30)
+            #function show/hide other incident field
+            def update_incident(*args):
+                #hiding the field first
+                otherincident.pack_forget()
+                otherincident_entry.pack_forget()
+                #only show the field if Other is selected
+                if incident_type.get()=="Other":
+                    otherincident.pack(pady = 3)
+                    otherincident_entry.pack(pady = 3)
+            #running whenever the incident type changes
+            incident_type.trace_add("write",update_incident)
+
+            #including date time entry
+            Label(self.main_frame, text = "Date and Time of Incident", bg = "aliceblue").pack(pady = (15,0))
+            datetimeentry = Entry(self.main_frame, width = 30)
+            datetimeentry.pack(pady =10)
+            Label(self.main_frame, text = "Enter as DD/MM/YYY HH:MM",bg = "aliceblue", font = ("Calibri",9)).pack()
+
+            Label(self.main_frame, text = "Description of Incident (optional)", bg ="aliceblue").pack(pady = (15,0))
             descentry = Text(self.main_frame, width = 40, height = 5)
             descentry.pack(pady = 10)
     
             def submit_report():
                 #collect the location, incident type, and optional description entered by the student
-                location = locentry.get().strip()
-                incident_type = incentry.get().strip()
-                description = descentry.get("1.0",END).strip()
-                #checking for empty fields
-                if not location or not incident_type:
-                    messagebox.showwarning("Missing Information","Please complete all fields.")
+                locationvalue = location.get()
+                #checking whether a location has been selected
+                if locationvalue == "Select Location":
+                    messagebox.showwarning("Missing Information","Please select a location.")
                     return
+                #if locker was selected, include selected whanau
+                if locationvalue == "Lockers":
+                    locationvalue = f"Lockers - {lockerwhanau.get()}"
+                #if other was selected, use the student's description
+                elif locationvalue == "Other":
+                    otherlocation = otherlocation_entry.get().strip()
+                    if not otherlocation:
+                        messagebox.showwarning("Missing Information","Please specify the location.")
+                        return
+                    locationvalue = otherlocation
+
+                incidentvalue = incident_type.get()
+                #checking whether an incident type has been selected
+                if incidentvalue == "Select Incident Type":
+                    messagebox.showwarning("Missing Information","Please select an incident type.")
+                    return
+                #if Other was selected, use the student's description
+                if incidentvalue == "Other":
+                    otherincident = otherincident_entry.get().strip()
+                    if not otherincident:
+                        messagebox.showwarning("Missing Information","Please specify the type of incident.")
+                        return
+                    incidentvalue = otherincident
+
+                #getting date and time value
+                datetimevalue = datetimeentry.get().strip()
+                if datetimevalue:
+                    try:
+                        datetime.strptime(datetimevalue, "%d/%m/%Y %H:%M")
+                    except ValueError:
+                        messagebox.showerror("Invalid Date and Time","Please enter a thed ate and time in DD/MM/YYY HH:MM format.")
+                        return
+                    
+
+                description = descentry.get("1.0",END).strip()
+                
                 #create a report dictionary so it can be saved in reports.json and used by teachers
                 report = {
-                    "Location":location,
-                    "Type of Incident":incident_type,
+                    "Location":locationvalue,
+                    "Type of Incident":incidentvalue,
                     "Description":description,
+                    "Date and Time":datetimevalue,
                     "Student ID":self.current_student.student_id,
                 }
                 #add and save report
@@ -504,13 +610,9 @@ class InventoryApp:
                 messagebox.showinfo("Report Submitted","Your incident report has been submitted successfully.")
                 self.show_home()
     
-            def clear_fields():
-                locentry.delete(0,END)
-                incentry.delete(0,END)
     
             buttonframe = Frame(self.main_frame, bg = "aliceblue")
             buttonframe.pack(pady = 20)
-            self.create_button(buttonframe, "Clear Fields",clear_fields,20)
             self.create_button(buttonframe, "Submit Report",submit_report,20)
             self.create_button(buttonframe, "Return to Dashboard",self.show_home,20)
     
@@ -905,7 +1007,11 @@ class InventoryApp:
 
         #generate a recommended action based on trends
         #this turns collected data into useful information that the teacher can use to take appropriate action
-        if trends["Overdue"]>0:
+        if trends["Reports"] >=5 and trends["Overdue"]>0:
+                    action = (
+                        f"There have been {trends["Reports"]} incident reports, with {trends["Overdue"]} overdue items. Consider reviewing {trends["Common Location"]} to identify the possible causes and reminding students about upcoming due dates."
+                    )
+        elif trends["Overdue"]>0:
             action = (
                 f"There are {trends["Overdue"]} overdue items. Consider reminding students about upcoming due dates and review the returning process."
             )
@@ -914,6 +1020,7 @@ class InventoryApp:
             action=(
                 f"There have been {trends["Reports"]} incident reports. Consider reviewing {trends["Common Location"]} to identify possible causes."
             )
+        
         #else, display a general message when there are only a few issues requiring teacher attention
         else:
             action = ("Inventory records are currently showing very few issues. Continue monitoring inventory and incident reports.")
@@ -935,15 +1042,36 @@ class InventoryApp:
             Label(self.main_frame, text = "There are currently no incident reports",font = ("Calibri",12),bg = "aliceblue").pack(pady = 40)
             return
 
-        #frame to contain the reports
-        reportsframe = Frame(self.main_frame, bg ="aliceblue")
-        reportsframe.pack(fill = BOTH, expand = True, padx = 80, pady = 20)
+        #frame to contain the scrollable reports section
+        reportscontainer = Frame(self.main_frame, bg ="aliceblue")
+        reportscontainer.pack(fill = BOTH, expand = True, padx = 80, pady = 20)
+        #creating a canvas so the reports can be scrolled
+        canvas = Canvas(reportscontainer, bg = "aliceblue", highlightthickness = 0)
+        canvas.pack(side = LEFT, fill = BOTH, expand = True)
+        #creating the scrollbar
+        scrollbar = Scrollbar(reportscontainer, orient = VERTICAL, command = canvas.yview)
+        scrollbar.pack(side =RIGHT, fill = Y)
+        #connect the canvas to the scroll bar
+        canvas.configure(yscrollcommand = scrollbar.set)
+        #the frame inside the canvas in which reports will be viewed
+        reportsframe = Frame(canvas, bg = "aliceblue")
+        canvas_window = canvas.create_window((0,0),window = reportsframe, anchor = "nw")
+        #updating the scrollable region whenever the reports frame changes size
+        def update_scrollregion(event):
+            canvas.configure(scrollregion = canvas.bbox("all"))
+        reportsframe.bind("<Configure>",update_scrollregion)
+        #making the inside frame stretch to the canvas width
+        def resize_reports(event):
+            canvas.itemconfig(canvas_window, width = event.width)
+        canvas.bind("<Configure>",resize_reports)
         #displaying each report
         for index, report in enumerate(self.reports):
             reportframe = Frame(reportsframe, bg = "snow",bd = 1, relief  = "solid")
             reportframe.pack(fill = X, pady = 10)
             #reports heading
             Label(reportframe, text = f"Incident Report #{index +1}",font = ("Garamond",16,"bold"),bg = "snow",fg = "midnightblue").pack(anchor = "w",padx = 20, pady = (15,5))
+            #date and time of incident
+            Label(reportframe, text = f"Date and Time: {report.get("Date and Time", "Not Provided")}",font = ("Calibri",11),bg = "snow").pack(anchor = "w", padx = 20, pady =3)
             #student ID
             Label(reportframe, text = f"Student ID: {report["Student ID"]}",font = ("Calibri",11,"bold"),bg ="snow").pack(anchor = "w",padx =20, pady = 3)
             #location
@@ -952,7 +1080,7 @@ class InventoryApp:
             Label(reportframe, text = f"Type of Incident: {report["Type of Incident"]}",font = ("Calibri",11),bg = "snow").pack(anchor = "w",padx = 20, pady = 3)
             #description and checking whether there is a description to display
             Label(reportframe, text = "Description: ",font = ("Calibri",11,"bold"),bg = "snow").pack(anchor = "w",padx = 20,pady =(8,2))
-            Label(reportframe, text = report["Description"] if report["Description"] else "No description provided.",font = ("Calibri",11),bg = "snow",wraplength = 800, justify = LEFT).pack(anchor = "w",padx = 20, pady = (0,15))        
+            Label(reportframe, text = report.get("Description","No description provided."),font = ("Calibri",11),bg = "snow",wraplength = 800, justify = LEFT).pack(anchor = "w",padx = 20, pady = (0,15))        
     #create a reusable card to display statistics on the dashboard
     def create_stat_card(self, parent, icon, title, value):
         card = Frame(parent, bg = "snow", bd = 1, relief = "solid",width = 220, height = 130)
@@ -1007,59 +1135,18 @@ class InventoryApp:
     def create_footer(self):
         cards = [
             ("📦","Pocket Inventory","Keep track of \nstudent belongings."),
-
             ("🔒","Protected Data","Secure storage\n for all records."),
-
             ("🔔","Easy Management","Quickly manage and stay\n updated about your items."),
-
             ( "📊","Statistical Analysis","View inventory and school\n statistics easily."
             )
         ]
-
         for icon, title, description in cards:
-
-            card = Frame(
-                self.footer_frame,
-                bg="aliceblue",
-                bd=1,
-                relief="solid"
-            )
-
-            card.pack(
-                side=LEFT,
-                expand=True,
-                fill=BOTH,
-                padx=10,
-                pady=15
-            )
-
-
-            Label(
-                card,
-                text=icon,
-                font=("Segoe UI Emoji", 22),
-                bg="aliceblue"
-            ).pack(
-                pady=5
-            )
-
-
-            Label(
-                card,
-                text=title,
-                font=("Garamond", 13, "bold"),
-                bg="aliceblue"
-            ).pack()
-
-
-            Label(
-                card,
-                text=description,
-                font=("Calibri", 10),
-                bg="aliceblue"
-            ).pack(
-                pady=5
-            )
+            card = Frame(self.footer_frame,bg="aliceblue",bd=1,relief="solid")
+            card.pack(side=LEFT,expand=True,fill=BOTH,padx=10,pady=15)
+            Label(card,text=icon,font=("Segoe UI Emoji", 22),bg="aliceblue").pack(pady=5)
+            Label(card,text=title,font=("Garamond", 13, "bold"),bg="aliceblue").pack()
+            Label(card,text=description,font=("Calibri", 10),bg="aliceblue"
+            ).pack(pady=5)
 
 
 #start the program
