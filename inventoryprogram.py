@@ -3,8 +3,6 @@
 from tkinter import* #GUI
 from tkinter import messagebox #GUI
 from datetime import datetime #date validation
-import smtplib #email notifications
-from email.message import EmailMessage #email notifications
 import json #JSON file storage
 import hashlib #password encryption
 
@@ -235,23 +233,6 @@ def save_reports(reports):
 def hash_pswd(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-#sending email notification to a student for overdue items
-def send_email(recipient, subject, message):
-    try:
-        email = EmailMessage()
-        email["Subject"] = subject
-        email["From"] = "YOUR_SYSTEM_EMAIL"
-        email["To"] = recipient
-        email.set_content(message)
-
-        #email server connection
-        server = smtplib.SMTP("smtp.gmail.com",587)
-        server.send_message(email)
-        server.quit()
-        return True
-    except Exception:
-        #return false if the email could not be sent
-        return False
 
 #inventory main app class
 #controls the GUI and connects different classes and functions together
@@ -981,8 +962,7 @@ class InventoryApp:
                 if not notification_exists:
                     notification = Notification(message, "Overdue")
                     student.add_notification(notification)
-                    #attempt to notify the student by email
-                    email_sent = send_email(student.email,"Inventory Management Alert",message)
+                    #saving
                     save_students(self.students)
 
     #display the teacher dashboard showing statistics and report trends
