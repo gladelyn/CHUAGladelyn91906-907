@@ -14,6 +14,11 @@ STATUS_OVERDUE = "Overdue"
 #constants used throughout program
 STUDENT_ID_LENGTH = 5
 TEACHER_CODE_LENGTH = 3
+#colour constants used across GUI
+THEME_COLOUR = "midnightblue"
+BG_COLOUR = "aliceblue"
+CARD_COLOUR = "snow"
+HOVER_COLOUR = "lightskyblue1"
 
 #User class (generic parent class which has all the attributes for teacher and student)
 class User:
@@ -37,14 +42,14 @@ class Student(User):
 
     #removing an item from the inventory using its list index
     def delete_item(self, index):
-        if 0<= index <len(self.inventory):
+        if 0 <= index < len(self.inventory):
             return self.inventory.pop(index)
         return None
 
     #updating the status of an item in a student's inventory
     def update_item_status(self, index, status):
         #check that selected index is valid
-        if 0<= index < len(self.inventory):
+        if 0 <= index < len(self.inventory):
             self.inventory[index]["Status"] = status
             return True
         return False
@@ -291,13 +296,13 @@ class InventoryApp:
 
     #creates a reusable button design so buttons across the program have a consistent appearance
     def create_button(self,parent, text, command, width = 20):
-        button = Button(parent, text= text, width = width, height =2, bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",command = command)
+        button = Button(parent, text= text, width = width, height =2, bg = THEME_COLOUR,fg = CARD_COLOUR,activebackground = HOVER_COLOUR,activeforeground = THEME_COLOUR,command = command)
         #change button appearance when the mouse hovers
         def button_enter(event):
-            event.widget.configure(bg = "lightskyblue1",fg = "midnightblue")
+            event.widget.configure(bg = HOVER_COLOUR,fg = THEME_COLOUR)
         #return the button to original appearance
         def button_leave(event):
-            event.widget.configure(bg = "midnightblue",fg = "snow")
+            event.widget.configure(bg = THEME_COLOUR,fg = CARD_COLOUR)
         button.bind("<Enter>",button_enter)
         button.bind("<Leave>",button_leave)
         button.pack(side = LEFT, padx = 8)
@@ -448,9 +453,9 @@ class InventoryApp:
 
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
-        Button(buttonframe, text = "Clear Fields",bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",width = 20,command = clear_fields).pack(side = LEFT, padx = 8)
-        Button(buttonframe, text = "Sign Up",bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue", width = 20, command = signup).pack(side = LEFT, padx = 8)
-        Button(buttonframe,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Return to Login",width = 20, command=self.show_login).pack(side = LEFT, padx =8)
+        self.create_button(buttonframe, "Clear Fields",clear_fields, 20)
+        self.create_button(buttonframe,  "Sign Up",signup, 20)
+        self.create_button(buttonframe,"Return to Login", self.show_login, 20)
 
         self.create_footer()
 
@@ -559,7 +564,7 @@ class InventoryApp:
                     if not otherlocation_value:
                         messagebox.showwarning("Missing Information","Please specify the location.")
                         return
-                    locationvalue = otherlocation
+                    locationvalue = otherlocation_value
 
                 incidentvalue = incident_type.get()
                 #checking whether an incident type has been selected
@@ -842,8 +847,10 @@ class InventoryApp:
                 deletewindow.destroy()
                 self.show_inventory()
 
-        Button(deletewindow, text = "Remove", width =20, command = confirm_delete).pack(pady = 10)
-        Button(deletewindow, text = "Cancel", width = 20, command = deletewindow.destroy).pack()
+        buttonframe = Frame(deletewindow,bg = "aliceblue")
+        buttonframe.pack(pady = 15)
+        self.create_button(buttonframe, "Remove", confirm_delete,20)
+        self.create_button(buttonframe, "Cancel", deletewindow.destroy,20)
 
 
     #allow students to update an item's status
