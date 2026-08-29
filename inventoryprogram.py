@@ -546,8 +546,8 @@ class InventoryApp:
                     locationvalue = f"Lockers - {lockerwhanau.get()}"
                 #if other was selected, use the student's description
                 elif locationvalue == "Other":
-                    otherlocation = otherlocation_entry.get().strip()
-                    if not otherlocation:
+                    otherlocation_value = otherlocation_entry.get().strip()
+                    if not otherlocation_value:
                         messagebox.showwarning("Missing Information","Please specify the location.")
                         return
                     locationvalue = otherlocation
@@ -805,7 +805,7 @@ class InventoryApp:
 
         #display each inventory item with a number so the user can easily select the item they wish to remove
         for index, item in enumerate(student.inventory):
-            Label(deletewindow, text = f"{index+1}.{item["Name"]}"f"({item["ID Number"]})",bg = "aliceblue").pack(pady = 3)
+            Label(deletewindow, text = f"{index+1}.{item['Name']}"f"({item['ID Number']})",bg = "aliceblue").pack(pady = 3)
 
         indexentry = Entry(deletewindow, width = 20)
         indexentry.pack(pady = 15)
@@ -856,7 +856,7 @@ class InventoryApp:
 
         #display each item with a number
         for index, item in enumerate(student.inventory):
-            Label(updatewindow, text = f"{index+1}. {item["Name"]} ({item["ID Number"]})", bg = "aliceblue").pack(pady = 3)
+            Label(updatewindow, text = f"{index+1}. {item['Name']} ({item['ID Number']})", bg = "aliceblue").pack(pady = 3)
         indexentry = Entry(updatewindow, width = 20)
         indexentry.pack(pady = 15)
         Label(updatewindow, text = "Select the new status: ",bg = "aliceblue").pack(pady = 5)
@@ -883,7 +883,7 @@ class InventoryApp:
             student.update_item_status(index, new_status)
             #save to JSON file
             save_students(self.students)
-            messagebox.showinfo("Status Updated", f"{student.inventory[index]["Name"]} has been marked as {new_status}")
+            messagebox.showinfo("Status Updated", f"{student.inventory[index]['Name']} has been marked as {new_status}")
 
             #close the popup and refresh inventory page
             updatewindow.destroy()
@@ -948,9 +948,9 @@ class InventoryApp:
                 item["Status"] = "Overdue"
                 #create a message containing the item's name and due date
                 message = (
-                    f"Your item '{item["Name"]}'"
+                    f"Your item '{item['Name']}'"
                     f"is overdue."
-                    f"It was due on {item["Due Date"]}."
+                    f"It was due on {item['Due Date']}."
                 )
                 #check if this notification already exists
                 notification_exists = False
@@ -982,23 +982,23 @@ class InventoryApp:
         self.create_stat_card(stats_frame,"📦","Items",trends["Items"] )
         self.create_stat_card(stats_frame,"🚨","Incidents",trends["Reports"])
         self.create_stat_card(stats_frame, "⚠️","Overdue",trends["Overdue"])
-        Label(self.main_frame, text = f"Most Common Incident: {trends["Common Incident"]}",bg = "aliceblue").pack(pady = 5)
-        Label(self.main_frame, text = f"Most Common Location: {trends["Common Location"]}",bg = "aliceblue").pack(pady = 5)
+        Label(self.main_frame, text = f"Most Common Incident: {trends['Common Incident']}",bg = "aliceblue").pack(pady = 5)
+        Label(self.main_frame, text = f"Most Common Location: {trends['Common Location']}",bg = "aliceblue").pack(pady = 5)
 
         #generate a recommended action based on trends
         #this turns collected data into useful information that the teacher can use to take appropriate action
         if trends["Reports"] >=5 and trends["Overdue"]>0:
                     action = (
-                        f"There have been {trends["Reports"]} incident reports, with {trends["Overdue"]} overdue items. Consider reviewing {trends["Common Location"]} to identify the possible causes and reminding students about upcoming due dates."
+                        f"There have been {trends['Reports']} incident reports, with {trends['Overdue']} overdue items. Consider reviewing {trends['Common Location']} to identify the possible causes and reminding students about upcoming due dates."
                     )
         elif trends["Overdue"]>0:
             action = (
-                f"There are {trends["Overdue"]} overdue items. Consider reminding students about upcoming due dates and review the returning process."
+                f"There are {trends['Overdue']} overdue items. Consider reminding students about upcoming due dates and review the returning process."
             )
         #if there are many incident reports, recommend investigating the locations where they occur
         elif trends["Reports"]>=5:
             action=(
-                f"There have been {trends["Reports"]} incident reports. Consider reviewing {trends["Common Location"]} to identify possible causes."
+                f"There have been {trends['Reports']} incident reports. Consider reviewing {trends['Common Location']} to identify possible causes."
             )
         
         #else, display a general message when there are only a few issues requiring teacher attention
@@ -1051,13 +1051,13 @@ class InventoryApp:
             #reports heading
             Label(reportframe, text = f"Incident Report #{index +1}",font = ("Garamond",16,"bold"),bg = "snow",fg = "midnightblue").pack(anchor = "w",padx = 20, pady = (15,5))
             #date and time of incident
-            Label(reportframe, text = f"Date and Time: {report.get("Date and Time", "Not Provided")}",font = ("Calibri",11),bg = "snow").pack(anchor = "w", padx = 20, pady =3)
+            Label(reportframe, text = f"Date and Time: {report.get('Date and Time', 'Not Provided')}",font = ("Calibri",11),bg = "snow").pack(anchor = "w", padx = 20, pady =3)
             #student ID
-            Label(reportframe, text = f"Student ID: {report["Student ID"]}",font = ("Calibri",11,"bold"),bg ="snow").pack(anchor = "w",padx =20, pady = 3)
+            Label(reportframe, text = f"Student ID: {report['Student ID']}",font = ("Calibri",11,"bold"),bg ="snow").pack(anchor = "w",padx =20, pady = 3)
             #location
-            Label(reportframe, text = f"Location: {report["Location"]}", font = ("Calibri",11), bg = "snow").pack(anchor = "w",padx =20, pady = 3)
+            Label(reportframe, text = f"Location: {report['Location']}", font = ("Calibri",11), bg = "snow").pack(anchor = "w",padx =20, pady = 3)
             #incident type
-            Label(reportframe, text = f"Type of Incident: {report["Type of Incident"]}",font = ("Calibri",11),bg = "snow").pack(anchor = "w",padx = 20, pady = 3)
+            Label(reportframe, text = f"Type of Incident: {report['Type of Incident']}",font = ("Calibri",11),bg = "snow").pack(anchor = "w",padx = 20, pady = 3)
             #description and checking whether there is a description to display
             Label(reportframe, text = "Description: ",font = ("Calibri",11,"bold"),bg = "snow").pack(anchor = "w",padx = 20,pady =(8,2))
             Label(reportframe, text = report.get("Description","No description provided."),font = ("Calibri",11),bg = "snow",wraplength = 800, justify = LEFT).pack(anchor = "w",padx = 20, pady = (0,15))        
