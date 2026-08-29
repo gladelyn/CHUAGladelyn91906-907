@@ -8,35 +8,6 @@ from email.message import EmailMessage #email notifications
 import json #JSON file storage
 import hashlib #password encryption
 
-#inventory items class (storing information about items stored by students)
-#contains methods allowing their inventory to be edited
-class InventoryItem:
-    def __init__(self, name, item_id, due_date):
-        self.name = name
-        self.item_id = item_id
-        self.due_date = due_date
-        self.status = "Borrowed"
-
-    #changing the item's status when it has been reported as missing
-    def mark_as_missing(self):
-        self.status = "Missing"
-
-    #changing the item's status when it has been returned
-    def mark_as_returned(self):
-        self.status = "Returned"
-
-    #checking whether the item's due date has passed
-    def check_overdue(self):
-        try:
-            due_date = datetime.strptime(self.due_date,"%d/%m/%Y")
-            if datetime.now() >due_date:
-                self.status = "Overdue"
-                return True
-        except ValueError:
-            #returning as false if the date is not stored in the valid format
-            return False
-        return False
-
 
 #User class (generic parent class which has all the attributes for teacher and student)
 class User:
