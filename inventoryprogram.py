@@ -887,6 +887,7 @@ class InventoryApp:
     def show_teacher_dashboard(self):
         self.clear_main_frame()
         self.clear_footer()
+        self.teacher_navigation_footer()
 
         Label(self.main_frame, text = "Teacher Dashboard", font = ("Garamond",28,"bold"), bg = "aliceblue",fg = "midnightblue").pack(pady = 30)
         #analyse the current student and incident report data
@@ -919,11 +920,39 @@ class InventoryApp:
 
         Label(self.main_frame, text = "Recommended Action", font = ("Garamond",18,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
         Label(self.main_frame,text = action, wraplength = 700, bg = "white", padx = 20, pady = 15).pack()
-        
-        buttonframe = Frame(self.main_frame, bg = "aliceblue")
-        buttonframe.pack(pady =20)
-        self.create_button(buttonframe, "Logout",self.logout,20)
-        
+
+    #displaying all incident reports for teachers to review
+    def show_teacher_reports(self):
+        self.clear_main_frame()
+        self.clear_footer()
+        self.teacher_navigation_footer()
+
+        Label(self.main_frame, text = "Incident Reports",font = ("Garamond",28,"bold"),bg ="sliceblue",fg ="midnightblue").pack(pady = 30)
+        Label(self.main_frame, text = "Review the details submitted by students",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
+
+        #checking whether any reports have been submitted
+        if len(self.reports) == 0:
+            Label(self.main_frame, text = "There are currently no incident reports",font = ("Calibri",12),bg = "aliceblue").pack(pady = 40)
+            return
+
+        #frame to contain the reports
+        reportsframe = Frame(self.main_frame, bg ="aliceblue")
+        reportsframe.pack(fill = BOTH, expand = True, padx = 80, pady = 20)
+        #displaying each report
+        for index, report in enumerate(self.reports):
+            reportframe = Frame(reportsframe, bg = "snow",bd = 1, relief  = "solid")
+            reportframe.pack(fill = X, pady = 10)
+            #reports heading
+            Label(reportframe, text = f"Incident Report #{index +1}",font = ("Garamond",16,"bold"),bg = "snow",fg = "midnightblue").pack(anchor = "w",padx = 20, pady = (15,5))
+            #student ID
+            Label(reportframe, text = f"Student ID: {report["Student ID"]}",font = ("Calibri",11,"bold"),bg ="snow").pack(anchor = "w",padx =20, pady = 3)
+            #location
+            Label(reportframe, text = f"Location: {report["Location"]}", font = ("Calibri",11), bg = "snow").pack(anchor = "w",padx =20, pady = 3)
+            #incident type
+            Label(reportframe, text = f"Type of Incident: {report["Type of Incident"]}",font = ("Calibri",11),bg = "snow").pack(anchor = "w",padx = 20, pady = 3)
+            #description and checking whether there is a description to display
+            Label(reportframe, text = "Description: ",font = ("Calibri",11,"bold"),bg = "white").pack(anchor = "w",padx = 20,pady =(8,2))
+            Label(reportframe, text = report["Description"] if report["Description"] else "No description provided.",font = ("Calibri",11),bg = "snow",wraplength = 800, justify = LEFT).pack(anchor = "w",padx = 20, pady = (0,15))        
     #create a reusable card to display statistics on the dashboard
     def create_stat_card(self, parent, icon, title, value):
         card = Frame(parent, bg = "white", bd = 1, relief = "solid",width = 220, height = 130)
