@@ -1,3 +1,14 @@
 {
-
+    "27810": {
+        "Name": "Alex",
+        "Email": "alex@test.com",
+        "Password": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
+        "Inventory": []
+    },
+    "29087": {
+        "Name": "May",
+        "Email": "may@test.com",
+        "Password": "e5351a1b138656788e51c7dbf1baba4d0eb75bd110d1a8b498b63926b15faf4d",
+        "Inventory": []
+    }
 }

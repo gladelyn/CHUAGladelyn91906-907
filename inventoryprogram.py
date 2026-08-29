@@ -204,17 +204,18 @@ def login(students):
         return None
 
     #ask user for their desired password
-    password = input("Enter your password: ")
-    hashed_pswd = hash_pswd(password)
-    #after password is hashed, compare with stored password to check whether it matches
-    if students[student_id].password == hashed_pswd:
-        print(f"\nWelcome Back, {students[student_id].name}")
+    while True:
+        password = input("Enter your password: ")
+        hashed_pswd = hash_pswd(password)
+        #after password is hashed, compare with stored password to check whether it matches
+        if students[student_id].password == hashed_pswd:
+            print(f"\nWelcome Back, {students[student_id].name}")
 
-        return students[student_id]
+            return students[student_id]
 
-    else:
-        print("Incorrect Password.\n")
-        return None
+        else:
+            print("Incorrect Password.\n")
+        
 
 #allows student to report a theft or missing item
 def report_incident(reports):
