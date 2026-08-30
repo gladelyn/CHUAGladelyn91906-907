@@ -1,26 +1,3 @@
 {
-    "27810": {
-        "Name": "Alex Lee",
-        "Email": "alex@test.com",
-        "Password": "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
-        "Inventory": [
-            {
-                "Name": "maths textbook",
-                "ID Number": "111000",
-                "Due Date": "11/10/2026"
-            },
-            {
-                "Name": "basketball gear",
-                "ID": "SPORTSGEAR",
-                "Due Date": "01/01/2026"
-            }
-        ],
-        "Notifications": [
-            {
-                "Message": "Your item 'basketball gear'is overdue.It was due on 01/01/2026.",
-                "Type": "Overdue",
-                "Read": false
-            }
-        ]
-    }
+
 }
