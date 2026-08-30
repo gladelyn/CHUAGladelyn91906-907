@@ -1,42 +1,24 @@
-#Inventory Program Version 3 (GUI transition)
+#Inventory Program Version 4 (GUI + Aesthetic and Interactive Features)
 #import libraries 
 from tkinter import* #GUI
 from tkinter import messagebox #GUI
 from datetime import datetime #date validation
-import smtplib #email notifications
-from email.message import EmailMessage #email notifications
 import json #JSON file storage
 import hashlib #password encryption
 
-#inventory items class (storing information about items stored by students)
-#contains methods allowing their inventory to be edited
-class InventoryItem:
-    def __init__(self, name, item_id, due_date):
-        self.name = name
-        self.item_id = item_id
-        self.due_date = due_date
-        self.status = "Borrowed"
-
-    #changing the item's status when it has been reported as missing
-    def mark_as_missing(self):
-        self.status = "Missing"
-
-    #changing the item's status when it has been returned
-    def mark_as_returned(self):
-        self.status = "Returned"
-
-    #checking whether the item's due date has passed
-    def check_overdue(self):
-        try:
-            due_date = datetime.strptime(self.due_date,"%d/%m/%Y")
-            if datetime.now() >due_date:
-                self.status = "Overdue"
-                return True
-        except ValueError:
-            #returning as false if the date is not stored in the valid format
-            return False
-        return False
-
+#status constants used across inventory items
+STATUS_STORED = "Stored"
+STATUS_MISSING = "Missing"
+STATUS_RETURNED = "Returned"
+STATUS_OVERDUE = "Overdue"
+#constants used throughout program
+STUDENT_ID_LENGTH = 5
+TEACHER_CODE_LENGTH = 3
+#colour constants used across GUI
+THEME_COLOUR = "midnightblue"
+BG_COLOUR = "aliceblue"
+CARD_COLOUR = "snow"
+HOVER_COLOUR = "lightskyblue1"
 
 #User class (generic parent class which has all the attributes for teacher and student)
 class User:
@@ -60,9 +42,17 @@ class Student(User):
 
     #removing an item from the inventory using its list index
     def delete_item(self, index):
-        if 0<= index <len(self.inventory):
+        if 0 <= index < len(self.inventory):
             return self.inventory.pop(index)
         return None
+
+    #updating the status of an item in a student's inventory
+    def update_item_status(self, index, status):
+        #check that selected index is valid
+        if 0 <= index < len(self.inventory):
+            self.inventory[index]["Status"] = status
+            return True
+        return False
 
     #adding a new notification to the student's notification list
     def add_notification(self, notification):
@@ -153,6 +143,7 @@ class Notification:
             "Type":self.notification_type,
             "Read":self.read
         }
+    
 #loading students information to students.json file
 def load_students():
     try:
@@ -183,6 +174,7 @@ def load_students():
     #if the JSON file doesn't exist, start with an empty dictionary
     except FileNotFoundError:
         return {}
+    
 #loading teachers on a separate teachers.json file 
 #teacher accounts are controlled by the school rather than being created through the signup page
 def load_teachers():
@@ -203,6 +195,7 @@ def load_teachers():
     #if no teacher files exists, start with no registered teachers
     except FileNotFoundError:
         return {}
+    
 #convert teacher objects into dictionaries so it can be saved on JSON
 def save_teachers(teachers):
     data = {}
@@ -216,6 +209,7 @@ def save_teachers(teachers):
     with open("teachers.json","w") as file:
         json.dump(data, file, indent = 4)
 #converting student objects into dictionary and save them
+
 def save_students(students):
     data = {}
     for student_id, student in students.items():
@@ -253,23 +247,6 @@ def save_reports(reports):
 def hash_pswd(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-#sending email notification to a student for overdue items
-def send_email(recipient, subject, message):
-    try:
-        email = EmailMessage()
-        email["Subject"] = subject
-        email["From"] = "YOUR_SYSTEM_EMAIL"
-        email["To"] = recipient
-        email.set_content(message)
-
-        #email server connection
-        server = smtplib.SMTP("smtp.gmail.com",587)
-        server.send_message(email)
-        server.quit()
-        return True
-    except Exception:
-        #return false if the email could not be sent
-        return False
 
 #inventory main app class
 #controls the GUI and connects different classes and functions together
@@ -293,14 +270,14 @@ class InventoryApp:
         self.title_frame = Frame(self.root,bg="midnightblue",height=80)
         self.title_frame.pack(fill=X)
         self.title_frame.pack_propagate(False)
-        Label(self.title_frame,text="INVENTORY MANAGEMENT SYSTEM",font=("Garamond", 24, "bold"),bg="midnightblue",fg="white").pack(pady=20)
+        Label(self.title_frame,text="INVENTORY MANAGEMENT SYSTEM",font=("Garamond", 24, "bold"),bg="midnightblue",fg="snow").pack(pady=20)
 
         #main frame
         self.main_frame = Frame(self.root,bg="aliceblue")
         self.main_frame.pack(fill=BOTH,expand=True)
 
         #footer frame
-        self.footer_frame = Frame(self.root,bg="white",height=160)
+        self.footer_frame = Frame(self.root,bg="snow",height=160)
         self.footer_frame.pack(fill=X)
         self.footer_frame.pack_propagate(False)
 
@@ -319,7 +296,15 @@ class InventoryApp:
 
     #creates a reusable button design so buttons across the program have a consistent appearance
     def create_button(self,parent, text, command, width = 20):
-        button = Button(parent, text= text, width = width, height =2, bg = "midnightblue",fg = "white",activebackground = "lightskyblue1",activeforeground = "midnightblue",command = command)
+        button = Button(parent, text= text, width = width, height =2, bg = THEME_COLOUR,fg = CARD_COLOUR,activebackground = HOVER_COLOUR,activeforeground = THEME_COLOUR,command = command)
+        #change button appearance when the mouse hovers
+        def button_enter(event):
+            event.widget.configure(bg = HOVER_COLOUR,fg = THEME_COLOUR)
+        #return the button to original appearance
+        def button_leave(event):
+            event.widget.configure(bg = THEME_COLOUR,fg = CARD_COLOUR)
+        button.bind("<Enter>",button_enter)
+        button.bind("<Leave>",button_leave)
         button.pack(side = LEFT, padx = 8)
         return button
 
@@ -355,7 +340,7 @@ class InventoryApp:
             #teacher login uses teacher code stored in teachers.json
             if account_type.get() == "Teacher":
                 #validating teacher code is 3 letters
-                if len(login_id)!=3 or not login_id.isalpha():
+                if len(login_id)!=TEACHER_CODE_LENGTH or not login_id.isalpha():
                     messagebox.showerror("Invalid Teacher Code","Teacher code must be 3 letters")
                     return
                 #convert the code to uppercase so teacher codes are entered consistently
@@ -379,7 +364,7 @@ class InventoryApp:
             #student login uses 5-digit ID
             else:
                 #validating the student id
-                if not login_id.isdigit() or len(login_id) !=5:
+                if not login_id.isdigit() or len(login_id) !=STUDENT_ID_LENGTH:
                     messagebox.showerror("Invalid Student ID","Student ID must be 5 digits.")
                     return
                 student_id = int(login_id)
@@ -442,7 +427,7 @@ class InventoryApp:
                 messagebox.showwarning("Missing Information","Please complete all fields.")
                 return
             #check student id
-            if not student_id.isdigit() or len(student_id)!= 5:
+            if not student_id.isdigit() or len(student_id)!= STUDENT_ID_LENGTH:
                 messagebox.showerror("Invalid Student ID","Student ID must be 5 digits")
                 return
             student_id = int(student_id)
@@ -468,9 +453,9 @@ class InventoryApp:
 
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
-        Button(buttonframe, text = "Clear Fields",bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",width = 20,command = clear_fields).pack(side = LEFT, padx = 8)
-        Button(buttonframe, text = "Sign Up",bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue", width = 20, command = signup).pack(side = LEFT, padx = 8)
-        Button(buttonframe,bg = "midnightblue", fg = "snow", activebackground = "lightskyblue1", activeforeground = "midnightblue",text="Return to Login",width = 20, command=self.show_login).pack(side = LEFT, padx =8)
+        self.create_button(buttonframe, "Clear Fields",clear_fields, 20)
+        self.create_button(buttonframe,  "Sign Up",signup, 20)
+        self.create_button(buttonframe,"Return to Login", self.show_login, 20)
 
         self.create_footer()
 
@@ -478,33 +463,140 @@ class InventoryApp:
     def show_reports(self):
             self.clear_main_frame()
             self.clear_footer()
+            self.create_navigation_footer()
             student = self.current_student
     
             Label(self.main_frame, text = "Report an Incident",font = ("Garamond",28,"bold"),bg = "aliceblue", fg = "midnightblue").pack(pady = 30)
             Label(self.main_frame, text = "Location",bg ="aliceblue").pack()
-            locentry = Entry(self.main_frame, width = 30)
-            locentry.pack(pady =10)
-            Label(self.main_frame, text = "Incident Type", bg = "aliceblue").pack()
-            incentry = Entry(self.main_frame, width = 30)
-            incentry.pack(pady = 10)
-            Label(self.main_frame, text = "Description of Incident (optional)", bg ="aliceblue").pack()
+            locationoptions = [
+                "WHANAU 1",
+                "WHANAU 2",
+                "WHANAU 3",
+                "WHANAU 4",
+                "WHANAU 6",
+                "Changing Rooms",
+                "Toilets",
+                "Lockers",
+                "Other"
+            ]
+            location = StringVar()
+            location.set("Select Location")
+            OptionMenu(self.main_frame, location, *locationoptions).pack(pady =10)
+            location_other_frame = Frame(self.main_frame, bg = "aliceblue")
+            location_other_frame.pack()
+            lockerwhanau_label = Label(location_other_frame, text = "Which Whanau?",bg = "aliceblue")
+            lockerwhanau = StringVar()
+            lockerwhanau.set("WHANAU 1")
+            lockermenu = OptionMenu(
+                location_other_frame, lockerwhanau, "WHANAU 1","WHANAU 2","WHANAU 3","WHANAU 4","WHANAU 5","WHANAU 6"
+            )
+            otherlocation = Label(location_other_frame, text = "Please specify the location:",bg = "aliceblue")
+            otherlocation_entry = Entry(location_other_frame, width = 30)
+            #function to change the extra fields depending on the location
+            def update_location(*args):
+                #removing any previously displayed extra fields
+                lockerwhanau_label.pack_forget()
+                lockermenu.pack_forget()
+                otherlocation.pack_forget()
+                otherlocation_entry.pack_forget()
+
+                #if locker is selected, then show Whanau dropdown
+                if location.get() == "Lockers":
+                    lockerwhanau_label.pack(pady = 3)
+                    lockermenu.pack(pady = 3)
+                #if Other is selected, show text entry
+                elif location.get() == "Other":
+                    otherlocation.pack(pady =3)
+                    otherlocation_entry.pack(pady =3)
+            #run the function whenever the location changes
+            location.trace_add("write",update_location)
+
+            Label(self.main_frame, text = "Incident Type", bg = "aliceblue").pack(pady = (15,0))
+            incidentoptions = [
+                "Theft",
+                "Missing Item",
+                "Vandalism",
+                "Other"
+            ]
+            incident_type = StringVar()
+            incident_type.set("Select Incident Type")
+            OptionMenu(self.main_frame, incident_type, *incidentoptions).pack(pady = 10)
+            #frame for other incident information
+            incident_other_frame = Frame(self.main_frame, bg = "aliceblue")
+            incident_other_frame.pack()
+            otherincident = Label(incident_other_frame, text = "Please specify the the incident", bg = "aliceblue")
+            otherincident_entry = Entry(incident_other_frame,width =30)
+            #function show/hide other incident field
+            def update_incident(*args):
+                #hiding the field first
+                otherincident.pack_forget()
+                otherincident_entry.pack_forget()
+                #only show the field if Other is selected
+                if incident_type.get()=="Other":
+                    otherincident.pack(pady = 3)
+                    otherincident_entry.pack(pady = 3)
+            #running whenever the incident type changes
+            incident_type.trace_add("write",update_incident)
+
+            #including date time entry
+            Label(self.main_frame, text = "Date and Time of Incident", bg = "aliceblue").pack(pady = (15,0))
+            datetimeentry = Entry(self.main_frame, width = 30)
+            datetimeentry.pack(pady =10)
+            Label(self.main_frame, text = "Enter as DD/MM/YYY HH:MM",bg = "aliceblue", font = ("Calibri",9)).pack()
+
+            Label(self.main_frame, text = "Description of Incident (optional)", bg ="aliceblue").pack(pady = (15,0))
             descentry = Text(self.main_frame, width = 40, height = 5)
             descentry.pack(pady = 10)
     
             def submit_report():
                 #collect the location, incident type, and optional description entered by the student
-                location = locentry.get().strip()
-                incident_type = incentry.get().strip()
-                description = descentry.get("1.0",END).strip()
-                #checking for empty fields
-                if not location or not incident_type:
-                    messagebox.showwarning("Missing Information","Please complete all fields.")
+                locationvalue = location.get()
+                #checking whether a location has been selected
+                if locationvalue == "Select Location":
+                    messagebox.showwarning("Missing Information","Please select a location.")
                     return
+                #if locker was selected, include selected whanau
+                if locationvalue == "Lockers":
+                    locationvalue = f"Lockers - {lockerwhanau.get()}"
+                #if other was selected, use the student's description
+                elif locationvalue == "Other":
+                    otherlocation_value = otherlocation_entry.get().strip()
+                    if not otherlocation_value:
+                        messagebox.showwarning("Missing Information","Please specify the location.")
+                        return
+                    locationvalue = otherlocation_value
+
+                incidentvalue = incident_type.get()
+                #checking whether an incident type has been selected
+                if incidentvalue == "Select Incident Type":
+                    messagebox.showwarning("Missing Information","Please select an incident type.")
+                    return
+                #if Other was selected, use the student's description
+                if incidentvalue == "Other":
+                    otherincident = otherincident_entry.get().strip()
+                    if not otherincident:
+                        messagebox.showwarning("Missing Information","Please specify the type of incident.")
+                        return
+                    incidentvalue = otherincident
+
+                #getting date and time value
+                datetimevalue = datetimeentry.get().strip()
+                if datetimevalue:
+                    try:
+                        datetime.strptime(datetimevalue, "%d/%m/%Y %H:%M")
+                    except ValueError:
+                        messagebox.showerror("Invalid Date and Time","Please enter a thed ate and time in DD/MM/YYY HH:MM format.")
+                        return
+                    
+
+                description = descentry.get("1.0",END).strip()
+                
                 #create a report dictionary so it can be saved in reports.json and used by teachers
                 report = {
-                    "Location":location,
-                    "Type of Incident":incident_type,
+                    "Location":locationvalue,
+                    "Type of Incident":incidentvalue,
                     "Description":description,
+                    "Date and Time":datetimevalue,
                     "Student ID":self.current_student.student_id,
                 }
                 #add and save report
@@ -513,13 +605,9 @@ class InventoryApp:
                 messagebox.showinfo("Report Submitted","Your incident report has been submitted successfully.")
                 self.show_home()
     
-            def clear_fields():
-                locentry.delete(0,END)
-                incentry.delete(0,END)
     
             buttonframe = Frame(self.main_frame, bg = "aliceblue")
             buttonframe.pack(pady = 20)
-            self.create_button(buttonframe, "Clear Fields",clear_fields,20)
             self.create_button(buttonframe, "Submit Report",submit_report,20)
             self.create_button(buttonframe, "Return to Dashboard",self.show_home,20)
     
@@ -527,6 +615,7 @@ class InventoryApp:
     def show_home(self):
         self.clear_main_frame()
         self.clear_footer()
+        self.create_navigation_footer()
         #check for newly overdue items whenever the dashboard opens
         self.check_notifications()
         student = self.current_student
@@ -536,6 +625,12 @@ class InventoryApp:
         stats_frame = Frame(self.main_frame, bg = "aliceblue")
         stats_frame.pack(pady = 30)
         self.create_stat_card(stats_frame,"📦", "Total Items", len(student.inventory) )
+        #count the unread notifications for the dashboard
+        unread_notifications = 0
+        for notification in student.notifications:
+            if not notification.read:
+                unread_notifications +=1
+        self.create_stat_card(stats_frame, "🔔","Unread Alerts",unread_notifications)
 
         #quick action buttons
         Label(self.main_frame, text = "Quick Actions",font = ("Garamond",20,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
@@ -550,31 +645,95 @@ class InventoryApp:
     def show_inventory(self):
         self.clear_main_frame()
         self.clear_footer()
+        self.create_navigation_footer()
         student = self.current_student
 
         Label(self.main_frame, text = "My Inventory", font = ("Garamond",28,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady =25)
         Label(self.main_frame, text = f"{student.name}'s stored items",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
 
-        inventoryframe = Frame(self.main_frame, bg = "aliceblue")
-        inventoryframe.pack(fill = BOTH, expand = True, padx = 50, pady = 20)
-        Label(inventoryframe, text = "Item Name", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 0, padx = 20, pady = 10)
-        Label(inventoryframe, text = "ID Number", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 1, padx = 20, pady = 10)
-        Label(inventoryframe, text = "Due Date", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0, column =2, padx = 20, pady = 10 )
-        #displaying the items
-        if len(student.inventory) ==0:
-            Label(inventoryframe, text = "No items have been stored yet.",font = ("Calibri",12),bg = "aliceblue").grid(row = 1, column = 0, columnspan = 3, pady = 30)
-        #else, loop through inventory list and display each item's details
-        else:
-            for index, item in enumerate(student.inventory):
-                Label(inventoryframe, text = item["Name"],bg = "white",width =20).grid(row = index + 1, column = 0, padx = 10, pady = 5)
-                Label(inventoryframe, text = item["ID Number"],bg = "white", width = 20).grid(row = index +1, column = 1, padx = 10, pady = 5)
-                Label(inventoryframe, text = item["Due Date"], bg = "white",width = 20).grid(row = index +1, column = 2, padx = 10, pady = 5)
+        #search and filter controls to easily navigate inventory
+        search_frame = Frame(self.main_frame, bg ="aliceblue")
+        search_frame.pack(pady = 15)
+        Label(search_frame, text = "Search Inventory:", bg ="aliceblue").pack(side = LEFT, padx = 5)
+        searchentry = Entry(search_frame, width = 25)
+        searchentry.pack(side = LEFT, padx = 5)
+        Label(search_frame, text = "Status", bg = "aliceblue").pack(side = LEFT, padx = 5)
 
+        #variable to store selected filter
+        status_filter = StringVar()
+        status_filter.set("All")
+        status_options = [
+            "All",
+            STATUS_STORED,
+            STATUS_OVERDUE,
+            STATUS_MISSING,
+            STATUS_RETURNED
+        ]
+        OptionMenu(search_frame, status_filter, *status_options).pack(side = LEFT, padx = 5)
+
+        #a frame where the inventory items will be displayed
+        inventoryframe = Frame(self.main_frame, bg = "aliceblue")
+        inventoryframe.pack(pady = 20)
+
+        def display_inventory():
+            #clearing the previous inventory display
+            for widget in inventoryframe.winfo_children():
+                widget.destroy()
+            #get the user's search input
+            search_text = searchentry.get().strip().lower()
+            #get the user's selected status filter
+            selected_status = status_filter.get()
+            #table headings
+            Label(inventoryframe, text = "Item Name", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 0,padx =20,pady = 10)
+            Label(inventoryframe, text = "ID Number",font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row =0, column = 1, padx =20, pady = 10)
+            Label(inventoryframe, text = "Due Date", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column = 2, padx = 20, pady = 10)
+            Label(inventoryframe, text = "Status", font = ("Garamond",13,"bold"),bg = "aliceblue").grid(row = 0,column =3, padx =20, pady =10)
+
+            displayed_items = []
+
+            #check every item against the search and filter
+            for item in student.inventory:
+                item_name = item["Name"].lower()
+                item_status = item.get("Status", STATUS_STORED)
+                #check whether item matches the search
+                matches_search = (
+                    search_text in item_name or search_text in item["ID Number"].lower()
+                )
+                #check whether the item matches selected status
+                matches_status = (
+                    selected_status == "All" or item_status == selected_status
+                )
+                if matches_search and matches_status:
+                    displayed_items.append(item)
+
+            #display a message if there are no matching items
+            if len(displayed_items) == 0:
+                Label(inventoryframe, text = "No matching items found.",font = ("Calibri",12), bg = "aliceblue").grid(row = 1,column = 0, columnspan = 4,pady = 30)
+            else:
+                #display each matching item
+                for index, item in enumerate(displayed_items):
+                    Label(inventoryframe, text = item["Name"],bg = "snow",width = 20).grid(row = index+1, column = 0, padx = 10, pady = 5)
+                    Label(inventoryframe, text = item["ID Number"],bg = "snow",width = 20).grid(row = index+1, column = 1, padx = 10, pady = 5)
+                    Label(inventoryframe, text = item["Due Date"], bg = "snow",width = 20).grid(row = index+1, column = 2, padx = 10, pady = 5)
+                    Label(inventoryframe, text = item.get("Status", STATUS_STORED),bg = "snow",width = 20).grid(row = index+1, column = 3, padx = 10, pady =5)
+
+        #update the inventory whenever the search text changes
+        searchentry.bind("<KeyRelease>",lambda event:display_inventory())
+        #update the inventory whenever status filter changes
+        status_filter.trace_add(
+            "write",lambda *args: display_inventory()
+        )
+
+        #display inventory when the page first opens
+        display_inventory()
+        #inventory action buttons
         buttonframe = Frame(self.main_frame, bg = "aliceblue")
         buttonframe.pack(pady = 20)
         self.create_button(buttonframe, "Add an Item", self.add_item)
+        self.create_button(buttonframe, "Update Status", self.update_status)
         self.create_button(buttonframe,  "Remove an Item", self.delete_item)
         self.create_button(buttonframe,"Return to Dashboard", self.show_home)
+       
 
     #open a pop-up window so the student can enter an inventory item
     def add_item(self):
@@ -624,7 +783,8 @@ class InventoryApp:
             item = {
                 "Name":item_name,
                 "ID Number":item_id,
-                "Due Date": due_date
+                "Due Date": due_date,
+                "Status":STATUS_STORED
             }
             #adding item to current student's inventory list then saving
             self.current_student.add_item(item)
@@ -637,7 +797,7 @@ class InventoryApp:
         buttonframe = Frame(addwindow, bg = "aliceblue")
         buttonframe.pack(pady = 20)
         self.create_button(buttonframe, "Clear Fields",clear_fields,20)
-        self.create_button(buttonframe, "Save Item", save_item,20).pack(pady = 20)
+        self.create_button(buttonframe, "Save Item", save_item,20)
         self.create_button(buttonframe,"Cancel", addwindow.destroy,20)
 
     #allow the student to select and remove an item from their inventory
@@ -651,7 +811,7 @@ class InventoryApp:
         #creating a new separate window to remove items
         deletewindow = Toplevel(self.root)
         deletewindow.title("Remove an Item")
-        deletewindow.geometry("400x400")
+        deletewindow.geometry("600x600")
         deletewindow.configure(bg = "aliceblue")
 
         Label(deletewindow, text = "Remove an item from your inventory.",font = ("Garamond",22,"bold"),bg = "aliceblue",fg ="midnightblue").pack(pady = 20)
@@ -659,7 +819,7 @@ class InventoryApp:
 
         #display each inventory item with a number so the user can easily select the item they wish to remove
         for index, item in enumerate(student.inventory):
-            Label(deletewindow, text = f"{index+1}.{item["Name"]}"f"({item["ID Number"]})",bg = "aliceblue").pack(pady = 3)
+            Label(deletewindow, text = f"{index+1}.{item['Name']}"f"({item['ID Number']})",bg = "aliceblue").pack(pady = 3)
 
         indexentry = Entry(deletewindow, width = 20)
         indexentry.pack(pady = 15)
@@ -687,25 +847,108 @@ class InventoryApp:
                 deletewindow.destroy()
                 self.show_inventory()
 
-        Button(deletewindow, text = "Remove", width =20, command = confirm_delete).pack(pady = 10)
-        Button(deletewindow, text = "Cancel", width = 20, command = deletewindow.destroy).pack()
+        buttonframe = Frame(deletewindow,bg = "aliceblue")
+        buttonframe.pack(pady = 15)
+        self.create_button(buttonframe, "Remove", confirm_delete,20)
+        self.create_button(buttonframe, "Cancel", deletewindow.destroy,20)
+
+
+    #allow students to update an item's status
+    def update_status(self):
+        student = self.current_student
+        #checking whether the student actually has items in their inventory
+        if len(student.inventory) ==0:
+            messagebox.showinfo("No Items","There are no items in your inventory to update.")
+            return
+
+        #create a separate window to update the status
+        updatewindow = Toplevel(self.root)
+        updatewindow.title("Update Item Status")
+        updatewindow.geometry("450x450")
+        updatewindow.configure(bg = "aliceblue")
+
+        Label(updatewindow, text = "Update Item Status", font = ("Garamond",22,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 20)
+        Label(updatewindow, text = "Select the number of the item:",bg = "aliceblue").pack(pady = 10)
+
+        #display each item with a number
+        for index, item in enumerate(student.inventory):
+            Label(updatewindow, text = f"{index+1}. {item['Name']} ({item['ID Number']})", bg = "aliceblue").pack(pady = 3)
+        indexentry = Entry(updatewindow, width = 20)
+        indexentry.pack(pady = 15)
+        Label(updatewindow, text = "Select the new status: ",bg = "aliceblue").pack(pady = 5)
+
+        #store the selected status
+        status = StringVar()
+        status.set(STATUS_MISSING)
+        OptionMenu(updatewindow, status, STATUS_MISSING,STATUS_RETURNED,STATUS_STORED).pack(pady = 5)
+        def save_status():
+            index_text = indexentry.get().strip()
+            #check that user enters number correctly
+            if not index_text.isdigit():
+                messagebox.showerror("Invalid Input","Please enter a valid item number from the list.")
+                return
+            #converting displayed number into python list index
+            index = int(index_text)-1
+            #checking whether selected item exists
+            if index <0 or index >=len(student.inventory):
+                messagebox.showerror("Invalid Item","That item number does not exist.")
+                return
+            #get the selected status
+            new_status = status.get()
+            #update item's status
+            student.update_item_status(index, new_status)
+            #save to JSON file
+            save_students(self.students)
+            messagebox.showinfo("Status Updated", f"{student.inventory[index]['Name']} has been marked as {new_status}")
+
+            #close the popup and refresh inventory page
+            updatewindow.destroy()
+            self.show_inventory()
+
+        buttonframe = Frame(updatewindow, bg = "aliceblue")
+        buttonframe.pack(pady = 20)
+        self.create_button(buttonframe, "Save Status",save_status,20)
+        self.create_button(buttonframe, "Cancel",updatewindow.destroy, 20)
 
     #display notifications belonging to the currently logged in student
     def show_notifications(self):
         self.clear_main_frame()
         self.clear_footer()
+        self.create_navigation_footer()
 
         Label(self.main_frame, text = "Notifications",font = ("Garamond",28,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady =30)
+
+        #count the number of unread notifications
+        unread_count = 0
+        for notification in self.current_student.notifications:
+            if not notification.read:
+                unread_count +=1
+        Label(self.main_frame, text = f"You have {unread_count} unread notification(s).", bg = "aliceblue",font = ("Calibri",12)).pack(pady = 5)
         if len(self.current_student.notifications) == 0:
             Label(self.main_frame, text = "You have no new notifications.", bg = "aliceblue").pack(pady=20)
         else:
             #only display the unread notifications to the student
             for notification in self.current_student.notifications:
+                notification_frame = Frame(self.main_frame, bg ="snow",bd = 1,relief = "solid")
+                notification_frame.pack(pady = 5, padx = 100, fill = X)
+                #display the notification message
+                Label(
+                    notification_frame, text = f"⚠ {notification.message}", bg = "snow", wraplength = 600).pack(side = LEFT, padx = 15, pady = 15)
+                #only show the button for unread notifications
                 if not notification.read:
-                    Label(self.main_frame, text = f"⚠ {notification.message}",bg = "white",width = 60, pady = 10).pack(pady = 5)
+                    def mark_read(n = notification):
+                        #mark the selected notification as read
+                        n.mark_as_read()
+                        #save updated notification status
+                        save_students(self.students)
+                        #refresh notification page
+                        self.show_notifications()
 
+                    Button(notification_frame, text = "Mark as Read",command = mark_read).pack(side = RIGHT, padx = 15)
+                else:
+                    Label(notification_frame, text = "✓ Read",bg = "snow").pack(side = RIGHT, padx = 15)
 
-        Button(self.main_frame, text = "Return to Dashboard", command = self.show_home).pack(pady = 20)
+        Button(self.main_frame, text = "Return to Dashboard",command = self.show_home).pack(pady = 20)
 
     #check for overdue items and create a notification when overdue
     def check_notifications(self):
@@ -717,11 +960,13 @@ class InventoryApp:
                 continue
             #compare the item's due date to today's date
             if due_date.date() < datetime.now().date():
+                #update the item's status when its due date has passed
+                item["Status"] = STATUS_OVERDUE
                 #create a message containing the item's name and due date
                 message = (
-                    f"Your item '{item["Name"]}'"
+                    f"Your item '{item['Name']}'"
                     f"is overdue."
-                    f"It was due on {item["Due Date"]}."
+                    f"It was due on {item['Due Date']}."
                 )
                 #check if this notification already exists
                 notification_exists = False
@@ -733,61 +978,118 @@ class InventoryApp:
                 if not notification_exists:
                     notification = Notification(message, "Overdue")
                     student.add_notification(notification)
-                    #attempt to notify the student by email
-                    email_sent = send_email(student.email,"Inventory Management Alert",message)
+                    #saving
                     save_students(self.students)
 
     #display the teacher dashboard showing statistics and report trends
     def show_teacher_dashboard(self):
         self.clear_main_frame()
         self.clear_footer()
+        self.teacher_navigation_footer()
 
         Label(self.main_frame, text = "Teacher Dashboard", font = ("Garamond",28,"bold"), bg = "aliceblue",fg = "midnightblue").pack(pady = 30)
         #analyse the current student and incident report data
         teacher = self.current_teacher
         trends = teacher.analyse_trends(self.students, self.reports)
-        #display the calculated statistics so teacher can see the patterns
-        Label(self.main_frame, text = "Inventory Insights",font = ("Garamond",20,"bold"),bg ="aliceblue",fg = "midnightblue").pack(pady=20)
-        Label(self.main_frame, text = f"Total Students: {trends["Students"]}",bg = "aliceblue").pack(pady = 10)
-        Label(self.main_frame, text = f"Total Items: {trends["Items"]}",bg = "aliceblue").pack(pady = 10)
-        Label(self.main_frame, text = f"Incident Reports: {trends["Reports"]}",bg = "aliceblue").pack(pady = 10)
-        Label(self.main_frame,text = f"Overdue Items: {trends["Overdue"]}",bg = "aliceblue").pack(pady =10)
-        Label(self.main_frame, text = f"Most Common Incident: {trends["Common Incident"]}",bg = "aliceblue").pack(pady = 5)
-        Label(self.main_frame, text = f"Most Common Location: {trends["Common Location"]}",bg = "aliceblue").pack(pady = 5)
+        #display the calculated statistics as visual cards so teacher can see the patterns
+        stats_frame = Frame(self.main_frame, bg = "aliceblue")
+        stats_frame.pack(pady = 20)
+        self.create_stat_card(stats_frame,"👥","Students", trends ["Students"] )
+        self.create_stat_card(stats_frame,"📦","Items",trends["Items"] )
+        self.create_stat_card(stats_frame,"🚨","Incidents",trends["Reports"])
+        self.create_stat_card(stats_frame, "⚠️","Overdue",trends["Overdue"])
+        Label(self.main_frame, text = f"Most Common Incident: {trends['Common Incident']}",bg = "aliceblue").pack(pady = 5)
+        Label(self.main_frame, text = f"Most Common Location: {trends['Common Location']}",bg = "aliceblue").pack(pady = 5)
 
         #generate a recommended action based on trends
         #this turns collected data into useful information that the teacher can use to take appropriate action
-        if trends["Overdue"]>0:
+        if trends["Reports"] >=5 and trends["Overdue"]>0:
+                    action = (
+                        f"There have been {trends['Reports']} incident reports, with {trends['Overdue']} overdue items. Consider reviewing {trends['Common Location']} to identify the possible causes and reminding students about upcoming due dates."
+                    )
+        elif trends["Overdue"]>0:
             action = (
-                "Consider reminding students about due dates and review the returning process"
+                f"There are {trends['Overdue']} overdue items. Consider reminding students about upcoming due dates and review the returning process."
             )
         #if there are many incident reports, recommend investigating the locations where they occur
         elif trends["Reports"]>=5:
-            action=("Consider reviewing the areas where incidents are occurring most frequently.")
+            action=(
+                f"There have been {trends['Reports']} incident reports. Consider reviewing {trends['Common Location']} to identify possible causes."
+            )
+        
         #else, display a general message when there are only a few issues requiring teacher attention
         else:
-            action = ("Inventory records are currently showing very few issues to discuss.")
+            action = ("Inventory records are currently showing very few issues. Continue monitoring inventory and incident reports.")
 
         Label(self.main_frame, text = "Recommended Action", font = ("Garamond",18,"bold"),bg = "aliceblue",fg = "midnightblue").pack(pady = 15)
-        Label(self.main_frame,text = action, wraplength = 700, bg = "white", padx = 20, pady = 15).pack()
-        
-        buttonframe = Frame(self.main_frame, bg = "aliceblue")
-        buttonframe.pack(pady =20)
-        self.create_button(buttonframe, "Logout",self.logout,20)
-        
+        Label(self.main_frame,text = action, wraplength = 700, bg = "snow", padx = 20, pady = 15).pack()
+
+    #displaying all incident reports for teachers to review
+    def show_teacher_reports(self):
+        self.clear_main_frame()
+        self.clear_footer()
+        self.teacher_navigation_footer()
+
+        Label(self.main_frame, text = "Incident Reports",font = ("Garamond",28,"bold"),bg ="aliceblue",fg ="midnightblue").pack(pady = 30)
+        Label(self.main_frame, text = "Use the scrollbar to review the details submitted by students",font = ("Calibri",13),bg = "aliceblue").pack(pady = 5)
+
+        #checking whether any reports have been submitted
+        if len(self.reports) == 0:
+            Label(self.main_frame, text = "There are currently no incident reports",font = ("Calibri",12),bg = "aliceblue").pack(pady = 40)
+            return
+
+        #frame to contain the scrollable reports section
+        reportscontainer = Frame(self.main_frame, bg ="aliceblue")
+        reportscontainer.pack(fill = BOTH, expand = True, padx = 80, pady = 20)
+        #creating a canvas so the reports can be scrolled
+        canvas = Canvas(reportscontainer, bg = "aliceblue", highlightthickness = 0)
+        canvas.pack(side = LEFT, fill = BOTH, expand = True)
+        #creating the scrollbar
+        scrollbar = Scrollbar(reportscontainer, orient = VERTICAL, command = canvas.yview)
+        scrollbar.pack(side =RIGHT, fill = Y)
+        #connect the canvas to the scroll bar
+        canvas.configure(yscrollcommand = scrollbar.set)
+        #the frame inside the canvas in which reports will be viewed
+        reportsframe = Frame(canvas, bg = "aliceblue")
+        canvas_window = canvas.create_window((0,0),window = reportsframe, anchor = "nw")
+        #updating the scrollable region whenever the reports frame changes size
+        def update_scrollregion(event):
+            canvas.configure(scrollregion = canvas.bbox("all"))
+        reportsframe.bind("<Configure>",update_scrollregion)
+        #making the inside frame stretch to the canvas width
+        def resize_reports(event):
+            canvas.itemconfig(canvas_window, width = event.width)
+        canvas.bind("<Configure>",resize_reports)
+        #displaying each report
+        for index, report in enumerate(self.reports):
+            reportframe = Frame(reportsframe, bg = "snow",bd = 1, relief  = "solid")
+            reportframe.pack(fill = X, pady = 10)
+            #reports heading
+            Label(reportframe, text = f"Incident Report #{index +1}",font = ("Garamond",16,"bold"),bg = "snow",fg = "midnightblue").pack(anchor = "w",padx = 20, pady = (15,5))
+            #date and time of incident
+            Label(reportframe, text = f"Date and Time: {report.get('Date and Time', 'Not Provided')}",font = ("Calibri",11),bg = "snow").pack(anchor = "w", padx = 20, pady =3)
+            #student ID
+            Label(reportframe, text = f"Student ID: {report['Student ID']}",font = ("Calibri",11,"bold"),bg ="snow").pack(anchor = "w",padx =20, pady = 3)
+            #location
+            Label(reportframe, text = f"Location: {report['Location']}", font = ("Calibri",11), bg = "snow").pack(anchor = "w",padx =20, pady = 3)
+            #incident type
+            Label(reportframe, text = f"Type of Incident: {report['Type of Incident']}",font = ("Calibri",11),bg = "snow").pack(anchor = "w",padx = 20, pady = 3)
+            #description and checking whether there is a description to display
+            Label(reportframe, text = "Description: ",font = ("Calibri",11,"bold"),bg = "snow").pack(anchor = "w",padx = 20,pady =(8,2))
+            Label(reportframe, text = report.get("Description","No description provided."),font = ("Calibri",11),bg = "snow",wraplength = 800, justify = LEFT).pack(anchor = "w",padx = 20, pady = (0,15))        
     #create a reusable card to display statistics on the dashboard
     def create_stat_card(self, parent, icon, title, value):
-        card = Frame(parent, bg = "white", bd = 1, relief = "solid",width = 220, height = 130)
+        card = Frame(parent, bg = "snow", bd = 1, relief = "solid",width = 220, height = 130)
         card.pack(side = LEFT, padx =10)
         card.pack_propagate(False)
-        Label(card, text = icon, font = ("Segoe UI Emoji", 25), bg = "white").pack(pady = 5)
-        Label(card, text = title, font = ("Garamond",13,"bold"),bg = "white").pack()
-        Label(card, text = value, font = ("Garamond",20,"bold"),bg ="white").pack()
+        Label(card, text = icon, font = ("Segoe UI Emoji", 25), bg = "snow").pack(pady = 5)
+        Label(card, text = title, font = ("Garamond",13,"bold"),bg = "snow").pack()
+        Label(card, text = value, font = ("Garamond",20,"bold"),bg ="snow").pack()
 
     #clearing the current user and return to login page
     def logout(self):
         self.current_student = None
-        self.current_teacer = None
+        self.current_teacher = None
         self.show_login()
 
     #asking user for confirmation before fully closing program
@@ -800,64 +1102,47 @@ class InventoryApp:
             #close the application window
             self.root.destroy()
 
+    def create_navigation_footer(self):
+        #create navigation buttons to display on dashboards and other pages
+        buttons = [
+            ("🏠 Dashboard", self.show_home),
+            ("📦 My Inventory",self.show_inventory),
+            ("🔔 Notifications", self.show_notifications),
+            ("🚨 Report", self.show_reports),
+            ("↪ Logout", self.logout)
+        ]
+        for text, command in buttons:
+            button = Button(self.footer_frame, text = text, bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",width = 18,height =2, command = command)
+            button.pack(side = LEFT, expand = True, padx = 5, pady = 5)
+
+    #creating navigation footer for teacher dashboard
+    def teacher_navigation_footer(self):
+        buttons = [
+            ("🏠 Dashboard",self.show_teacher_dashboard),
+            ("🚨 View Reports",self.show_teacher_reports),
+            ("↪ Logout",self.logout)
+        ]
+        for text, command in buttons:
+            button = Button(self.footer_frame, text = text, bg = "midnightblue",fg = "snow",activebackground = "lightskyblue1",activeforeground = "midnightblue",width = 25, height = 2,command = command)
+            button.pack(side = LEFT, expand = True, padx = 20, pady = 20)
+
     #create reusable information cards for login/signup pages
     #these introduce the main features of the system
     def create_footer(self):
         cards = [
             ("📦","Pocket Inventory","Keep track of \nstudent belongings."),
-
             ("🔒","Protected Data","Secure storage\n for all records."),
-
             ("🔔","Easy Management","Quickly manage and stay\n updated about your items."),
-
             ( "📊","Statistical Analysis","View inventory and school\n statistics easily."
             )
         ]
-
         for icon, title, description in cards:
-
-            card = Frame(
-                self.footer_frame,
-                bg="aliceblue",
-                bd=1,
-                relief="solid"
-            )
-
-            card.pack(
-                side=LEFT,
-                expand=True,
-                fill=BOTH,
-                padx=10,
-                pady=15
-            )
-
-
-            Label(
-                card,
-                text=icon,
-                font=("Segoe UI Emoji", 22),
-                bg="aliceblue"
-            ).pack(
-                pady=5
-            )
-
-
-            Label(
-                card,
-                text=title,
-                font=("Garamond", 13, "bold"),
-                bg="aliceblue"
-            ).pack()
-
-
-            Label(
-                card,
-                text=description,
-                font=("Calibri", 10),
-                bg="aliceblue"
-            ).pack(
-                pady=5
-            )
+            card = Frame(self.footer_frame,bg="aliceblue",bd=1,relief="solid")
+            card.pack(side=LEFT,expand=True,fill=BOTH,padx=10,pady=15)
+            Label(card,text=icon,font=("Segoe UI Emoji", 22),bg="aliceblue").pack(pady=5)
+            Label(card,text=title,font=("Garamond", 13, "bold"),bg="aliceblue").pack()
+            Label(card,text=description,font=("Calibri", 10),bg="aliceblue"
+            ).pack(pady=5)
 
 
 #start the program
